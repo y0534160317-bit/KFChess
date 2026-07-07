@@ -103,6 +103,54 @@ public class GameController {
         return false;
     }
 
+
+    // Dynamic validation helper: checks if a specific square is the future landing spot of a friendly moving piece
+    private boolean isSquareOccupiedByActiveMove(Position pos, Piece.Color movingColor) {
+        for (ActiveMove move : activeMoves) {
+            if (move.getTo().equals(pos) && move.getPiece().getColor() == movingColor) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Dynamic path validation: evaluates both static obstacles and active movements of friendly pieces
+    private boolean isPathClearWithActiveMoves(Position from, Position to, Piece.Color pieceColor) {
+        int startRow = from.getRow();
+        int startCol = from.getCol();
+        int endRow = to.getRow();
+        int endCol = to.getCol();
+
+        int deltaRow = endRow - startRow;
+        int deltaCol = endCol - startCol;
+
+        int stepRow = Integer.compare(deltaRow, 0);
+        int stepCol = Integer.compare(deltaCol, 0);
+
+        int currentRow = startRow + stepRow;
+        int currentCol = startCol + stepCol;
+
+        // Traverse through the path squares until reaching the destination
+        while (currentRow != endRow || currentCol != endCol) {
+            Position currentPos = new Position(currentRow, currentCol);
+
+            // Check 1: Static collision on board
+            if (board.getPiece(currentPos) != null) {
+                return false;
+            }
+
+            // Check 2: Dynamic collision (friendly piece landing on this path square ahead)
+            if (isSquareOccupiedByActiveMove(currentPos, pieceColor)) {
+                return false;
+            }
+
+            currentRow += stepRow;
+            currentCol += stepCol;
+        }
+
+        return true;
+    }
+
     // Comprehensive helper to validate if a move complies with all chess mechanics for Iteration 3
     private boolean isValidMove(Position from, Position to, Piece piece) {
 
@@ -131,9 +179,14 @@ public class GameController {
             return false;
         }
 
+        // 3. Validate destination square dynamically: cannot land on a reserved friendly square
+        if (isSquareOccupiedByActiveMove(to, piece.getColor())) {
+            return false;
+        }
+
         // 3. Validate path clearance for sliding pieces (Knight jumps over blockers)
         if (piece.getType() != Piece.Type.KNIGHT) {
-            if (!board.isPathClear(from, to)) {
+            if (!isPathClearWithActiveMoves(from, to, piece.getColor())) {
                 return false;
             }
         }

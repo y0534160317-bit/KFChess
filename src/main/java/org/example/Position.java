@@ -32,3 +32,4 @@ public class Position {
         return 31 * row + col;
     }
 }
+

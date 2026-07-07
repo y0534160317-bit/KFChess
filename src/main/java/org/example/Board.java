@@ -36,4 +36,43 @@ public class Board {
             System.out.println(rowStr); // Prints the completed row
         }
     }
+
+    // Constants for pixel calculations (flexible for future changes)
+    public static final int CELL_SIZE = 100;
+
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
+    // Safely checks if a given row and column are within the board boundaries
+    public boolean isWithinBounds(int row, int col) {
+        return row >= 0 && row < height && col >= 0 && col < width;
+    }
+
+    // Overloaded method to check bounds using a Position object
+    public boolean isWithinBounds(Position pos) {
+        return isWithinBounds(pos.getRow(), pos.getCol());
+    }
+
+    // Retrieves a piece at a specific position
+    public Piece getPiece(Position pos) {
+        if (!isWithinBounds(pos)) {
+            return null;
+        }
+        return grid[pos.getRow()][pos.getCol()];
+    }
+
+    // Moves a piece from one position to another, clearing the old position
+    public void movePiece(Position from, Position to) {
+        if (!isWithinBounds(from) || !isWithinBounds(to)) {
+            return;
+        }
+        Piece pieceToMove = getPiece(from);
+        grid[to.getRow()][to.getCol()] = pieceToMove;
+        grid[from.getRow()][from.getCol()] = null; // Clear old square
+    }
 }

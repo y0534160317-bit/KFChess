@@ -59,7 +59,13 @@ public class GameController {
             return false;
         }
 
-        // 2. Except for Knights, verify that the path to the target square is clear of obstructions
+        // 2. Validate destination square: cannot capture a friendly piece
+        Piece targetPiece = board.getPiece(to);
+        if (targetPiece != null && targetPiece.getColor() == piece.getColor()) {
+            return false;
+        }
+
+        // 3. Validate path clearance for sliding pieces (Knight jumps over blockers)
         if (piece.getType() != Piece.Type.KNIGHT) {
             if (!board.isPathClear(from, to)) {
                 return false;

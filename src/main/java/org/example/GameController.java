@@ -8,6 +8,7 @@ public class GameController {
     private final Board board;
     private Position selectedPosition;
     private long gameTimeMillis;
+    private boolean isGameOver;
 
     // List to manage all pieces currently moving in real-time
     private final List<ActiveMove> activeMoves;
@@ -24,6 +25,10 @@ public class GameController {
 
     // Process a click event at pixel coordinates (x, y)
     public void handleClick(int x, int y) {
+
+        if (isGameOver) {
+            return;
+        }
         // Convert pixel coordinates to board indices
         int row = y / Board.CELL_SIZE;
         int col = x / Board.CELL_SIZE;
@@ -208,6 +213,11 @@ public class GameController {
 
             // Check if the game clock has reached or passed the arrival time
             if (move.isComplete(this.gameTimeMillis)) {
+                // Check if the landing square contains an enemy King BEFORE completing the physical move
+                Piece targetPiece = board.getPiece(move.getTo());
+                if (targetPiece != null && targetPiece.getType() == Piece.Type.KING) {
+                    isGameOver = true;
+                }
                 // NO COOLDOWN: Execute physical move immediately
                 board.movePiece(move.getFrom(), move.getTo());
                 iterator.remove(); // Move is finished, remove from active list

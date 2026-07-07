@@ -1,6 +1,5 @@
 package org.example;
 
-// Position.java
 public class Position {
     private final int row;
     private final int col;

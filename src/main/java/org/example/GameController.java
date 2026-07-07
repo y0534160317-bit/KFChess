@@ -166,7 +166,7 @@ public class GameController {
 
         // Route pawn movement validation to the specific class
         if (piece.getType() == Piece.Type.PAWN) {
-            return PawnMoveValidator.isValidPawnMove(from, to, piece, board);
+            return PawnMoveValidator.isValidPawnMove(from, to, piece, board, this.activeMoves);
         }
 
         // Existing logic for all other pieces
@@ -220,7 +220,24 @@ public class GameController {
                 }
                 // NO COOLDOWN: Execute physical move immediately
                 board.movePiece(move.getFrom(), move.getTo());
+                Piece movedPiece = move.getPiece();
+                if (movedPiece.getType() == Piece.Type.PAWN) {
+                    int targetRow = move.getTo().getRow();
+
+                    // בדיקה האם הפיון הגיע לשורה האחרונה לפי צבעו
+                    boolean isWhitePromotion = (movedPiece.getColor() == Piece.Color.WHITE && targetRow == 0);
+                    boolean isBlackPromotion = (movedPiece.getColor() == Piece.Color.BLACK && targetRow == board.getHeight() - 1);
+
+                    if (isWhitePromotion || isBlackPromotion) {
+                        // יצירת מלכה חדשה באותו הצבע והחלפת הפיון שעל הלוח
+                        Piece queenPromotion = new Piece(movedPiece.getColor(), Piece.Type.QUEEN);
+                        board.setPiece(targetRow, move.getTo().getCol(), queenPromotion);
+                    }
+                }
+
                 iterator.remove(); // Move is finished, remove from active list
+
+
             }
         }
     }

@@ -40,7 +40,7 @@ public class GameController {
         // Case 1: No piece is currently selected
         if (selectedPosition == null) {
             if (clickedPiece != null) {
-                // Only select the piece if it is not already mid-move
+                // NO REDIRECT: Only select the piece if it is not already mid-move
                 if (!isPieceMovingFrom(clickedPos)) {
                     selectedPosition = clickedPos; // Select the piece
                 }
@@ -57,8 +57,11 @@ public class GameController {
                 selectedPosition = clickedPos;
             }
         } else {
-            // Clicked an empty square or an enemy piece -> validate and move request
-            if (isValidMove(selectedPosition, clickedPos, selectedPiece)) {
+            // Determine the opponent color
+            Piece.Color opponentColor = (selectedPiece.getColor() == Piece.Color.WHITE) ? Piece.Color.BLACK : Piece.Color.WHITE;
+
+            // NO CONCURRENT OPPOSITE MOVEMENT: Check if an opponent piece is already moving
+            if (!isColorMoving(opponentColor) && !isPieceMovingTo(clickedPos) && isValidMove(selectedPosition, clickedPos, selectedPiece)) {
                 // 1. Calculate how many squares the piece is traveling
                 int distance = calculateDistance(selectedPosition, clickedPos);
 
@@ -90,8 +93,23 @@ public class GameController {
         return false;
     }
 
+    // Helper to check if a destination square is already reserved by another moving piece
+    private boolean isPieceMovingTo(Position pos) {
+        for (ActiveMove move : activeMoves) {
+            if (move.getTo().equals(pos)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     // Comprehensive helper to validate if a move complies with all chess mechanics for Iteration 3
     private boolean isValidMove(Position from, Position to, Piece piece) {
+
+        // Target cannot be the same as origin
+        if (from.equals(to)) {
+            return false;
+        }
 
         // Route pawn movement validation to the specific class
         if (piece.getType() == Piece.Type.PAWN) {
@@ -132,15 +150,26 @@ public class GameController {
         // Use Iterator to safely remove items from the list while iterating
         Iterator<ActiveMove> iterator = activeMoves.iterator();
         while (iterator.hasNext()) {
+            // תיקון: הגדרת הטיפוס ActiveMove בצורה מפורשת
             ActiveMove move = iterator.next();
 
             // Check if the game clock has reached or passed the arrival time
             if (move.isComplete(this.gameTimeMillis)) {
-                // Execute the physical move on the board grid
+                // NO COOLDOWN: Execute physical move immediately
                 board.movePiece(move.getFrom(), move.getTo());
                 iterator.remove(); // Move is finished, remove from active list
             }
         }
+    }
+
+    // Helper to check if any piece of a specific color is currently moving
+    private boolean isColorMoving(Piece.Color color) {
+        for (ActiveMove move : activeMoves) {
+            if (move.getPiece().getColor() == color) {
+                return true;
+            }
+        }
+        return false;
     }
 
     // Standard print delegate

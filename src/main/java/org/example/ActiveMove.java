@@ -1,4 +1,3 @@
-// ActiveMove.java
 package org.example;
 
 public class ActiveMove {

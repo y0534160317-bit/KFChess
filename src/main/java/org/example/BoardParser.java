@@ -7,6 +7,7 @@ public class BoardParser {
 
     // Parses raw text lines into a validated Board object
     public static Board parse(List<String> boardLines) throws IllegalArgumentException {
+
         if (boardLines == null || boardLines.isEmpty()) {
             throw new IllegalArgumentException("ERROR ROW_WIDTH_MISMATCH");
         }

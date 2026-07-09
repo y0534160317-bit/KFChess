@@ -1,4 +1,8 @@
-package org.example;
+package org.example.realtime;
+
+import org.example.model.Board;
+import org.example.model.Piece;
+import org.example.model.Position;
 
 import java.util.ArrayList;
 import java.util.Iterator;

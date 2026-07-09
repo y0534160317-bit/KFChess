@@ -1,4 +1,4 @@
-package org.example;
+package org.example.model;
 
 public class Board {
     private final int width;
@@ -15,26 +15,6 @@ public class Board {
     // Places a piece at a specific coordinate on the grid
     public void setPiece(int row, int col, Piece piece) {
         grid[row][col] = piece;
-    }
-
-    // Prints the board configuration precisely as expected by the VPL platform
-    public void print() {
-        for (int r = 0; r < height; r++) {
-            StringBuilder rowStr = new StringBuilder();
-            for (int c = 0; c < width; c++) {
-                if (grid[r][c] == null) {
-                    rowStr.append("."); // Prints a dot for empty squares
-                } else {
-                    rowStr.append(grid[r][c].toString()); // Prints the piece token (e.g., "wK")
-                }
-
-                // appends a single space between elements, ensuring no trailing space at the end of a line
-                if (c < width - 1) {
-                    rowStr.append(" ");
-                }
-            }
-            System.out.println(rowStr); // Prints the completed row
-        }
     }
 
     // Constants for pixel calculations (flexible for future changes)

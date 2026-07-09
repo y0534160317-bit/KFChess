@@ -1,15 +1,23 @@
-package org.example;
+package org.example.input;
+
+import org.example.model.Board;
+import org.example.model.Piece;
+import org.example.model.Position;
+import org.example.realtime.ActiveMove;
+import org.example.realtime.MovementEngine;
+import org.example.rules.MoveRules;
+
 
 public class InteractionHandler {
     private final Board board;
     private final MovementEngine movementEngine;
-    private final MoveValidator moveValidator;
+    private final MoveRules moveRules;
     private Position selectedPosition;
 
-    public InteractionHandler(Board board, MovementEngine movementEngine, MoveValidator moveValidator) {
+    public InteractionHandler(Board board, MovementEngine movementEngine, MoveRules moveRules) {
         this.board = board;
         this.movementEngine = movementEngine;
-        this.moveValidator = moveValidator;
+        this.moveRules = moveRules;
         this.selectedPosition = null;
     }
 
@@ -40,8 +48,12 @@ public class InteractionHandler {
         } else {
             Piece.Color opponentColor = (selectedPiece.getColor() == Piece.Color.WHITE) ? Piece.Color.BLACK : Piece.Color.WHITE;
 
-            if (!movementEngine.isColorMoving(opponentColor) && !movementEngine.isPieceMovingTo(clickedPos) && moveValidator.isValidMove(selectedPosition, clickedPos, selectedPiece)) {
-                int distance = moveValidator.calculateDistance(selectedPosition, clickedPos);
+            if (!movementEngine.isColorMoving(opponentColor) &&
+                !movementEngine.isPieceMovingTo(clickedPos) &&
+                    moveRules.isValidMove(selectedPosition, clickedPos, selectedPiece ,
+                        pos -> movementEngine.isSquareOccupiedByActiveMove(pos, selectedPiece.getColor()))) {
+
+                int distance = moveRules.calculateDistance(selectedPosition, clickedPos);
                 long totalTravelTime = distance * MovementEngine.MOVE_DURATION_PER_SQUARE;
                 long arrivalTime = movementEngine.getGameTimeMillis() + totalTravelTime;
 
@@ -58,7 +70,10 @@ public class InteractionHandler {
         int col = x / Board.CELL_SIZE;
         Position pos = new Position(row, col);
 
-        if (!board.isWithinBounds(pos)) return;
+        if (!board.isWithinBounds(pos)) {
+            selectedPosition = null;
+            return;
+        }
 
         Piece piece = board.getPiece(pos);
         if (piece == null) return;
@@ -68,7 +83,7 @@ public class InteractionHandler {
         ActiveMove threateningEnemyMove = null;
         for (ActiveMove move : movementEngine.getActiveMoves()) {
             if (move.getTo().equals(pos) && move.getPiece().getColor() != piece.getColor()) {
-                long moveStartTime = move.getArrivalTimeMillis() - (moveValidator.calculateDistance(move.getFrom(), move.getTo()) * MovementEngine.MOVE_DURATION_PER_SQUARE);
+                long moveStartTime = move.getArrivalTimeMillis() - (moveRules.calculateDistance(move.getFrom(), move.getTo()) * MovementEngine.MOVE_DURATION_PER_SQUARE);
                 if (movementEngine.getGameTimeMillis() > moveStartTime) {
                     threateningEnemyMove = move;
                     break;

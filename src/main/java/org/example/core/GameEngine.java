@@ -1,16 +1,22 @@
-package org.example;
+package org.example.core;
 
-public class GameController {
+import org.example.input.InteractionHandler;
+import org.example.model.Board;
+import org.example.io.BoardPrinter;
+import org.example.realtime.MovementEngine;
+import org.example.rules.MoveRules;
+
+public class GameEngine {
     private final Board board;
     private final MovementEngine movementEngine;
-    private final MoveValidator moveValidator;
+    private final MoveRules moveRules;
     private final InteractionHandler interactionHandler;
 
-    public GameController(Board board) {
+    public GameEngine(Board board) {
         this.board = board;
         this.movementEngine = new MovementEngine(board);
-        this.moveValidator = new MoveValidator(board, this.movementEngine);
-        this.interactionHandler = new InteractionHandler(board, this.movementEngine, this.moveValidator);
+        this.moveRules = new MoveRules(board);
+        this.interactionHandler = new InteractionHandler(board, this.movementEngine, this.moveRules);
     }
 
     public void handleClick(int x, int y) {
@@ -26,6 +32,7 @@ public class GameController {
     }
 
     public void printBoard() {
-        board.print();
+        BoardPrinter printer = new BoardPrinter();
+        printer.print(board);
     }
 }

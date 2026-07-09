@@ -1,4 +1,7 @@
-package org.example;
+package org.example.realtime;
+
+import org.example.model.Piece;
+import org.example.model.Position;
 
 public class ActiveMove {
     private final Position from;

@@ -1,6 +1,8 @@
-package org.example;
+package org.example.io;
 
-import java.util.ArrayList;
+import org.example.model.Board;
+import org.example.model.Piece;
+
 import java.util.List;
 
 public class BoardParser {

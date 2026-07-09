@@ -1,4 +1,4 @@
-package org.example;
+package org.example.model;
 
 public class Position {
     private final int row;

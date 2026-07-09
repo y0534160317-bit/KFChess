@@ -1,12 +1,19 @@
-package org.example;
+package org.example.rules;
 
-public class MoveValidator {
+import org.example.model.Board;
+import org.example.model.Piece;
+import org.example.model.Position;
+
+import java.util.function.Predicate;
+
+public class MoveRules {
     private final Board board;
-    private final MovementEngine movementEngine;
+    private final PieceRules pieceRules;
+//    private final MovementEngine// movementEngine;//
 
-    public MoveValidator(Board board, MovementEngine movementEngine) {
+    public MoveRules(Board board) {
         this.board = board;
-        this.movementEngine = movementEngine;
+        this.pieceRules = new PieceRules();
     }
 
     public int calculateDistance(Position from, Position to) {
@@ -15,7 +22,7 @@ public class MoveValidator {
         return Math.max(deltaRow, deltaCol);
     }
 
-    public boolean isPathClearWithActiveMoves(Position from, Position to, Piece.Color pieceColor) {
+    public boolean isPathClearWithActiveMoves(Position from, Position to, Predicate<Position> isSquareOccupiedInAir) {
         int startRow = from.getRow();
         int startCol = from.getCol();
         int endRow = to.getRow();
@@ -31,7 +38,7 @@ public class MoveValidator {
             Position currentPos = new Position(currentRow, currentCol);
 
             if (board.getPiece(currentPos) != null) return false;
-            if (movementEngine.isSquareOccupiedByActiveMove(currentPos, pieceColor)) return false;
+            if (isSquareOccupiedInAir.test(currentPos)) return false;
 
             currentRow += stepRow;
             currentCol += stepCol;
@@ -39,30 +46,31 @@ public class MoveValidator {
         return true;
     }
 
-    public boolean isValidMove(Position from, Position to, Piece piece) {
+    public boolean isValidMove(Position from, Position to, Piece piece , Predicate<Position> isSquareOccupiedInAir) {
         if (from.equals(to)) return false;
 
         if (piece.getType() == Piece.Type.PAWN) {
-            return isValidPawnMove(from, to, piece);
+            return isValidPawnMove(from, to, piece, isSquareOccupiedInAir);
         }
 
         int deltaRow = to.getRow() - from.getRow();
         int deltaCol = to.getCol() - from.getCol();
 
-        if (!piece.getType().isValidMoveShape(deltaRow, deltaCol)) return false;
+        PieceRules pieceRules = new PieceRules();
+        if (!pieceRules.isValidMoveShape(piece.getType(), deltaRow, deltaCol)) return false;
 
         Piece targetPiece = board.getPiece(to);
         if (targetPiece != null && targetPiece.getColor() == piece.getColor()) return false;
-        if (movementEngine.isSquareOccupiedByActiveMove(to, piece.getColor())) return false;
+        if (isSquareOccupiedInAir.test(to)) return false;
 
         if (piece.getType() != Piece.Type.KNIGHT) {
-            if (!isPathClearWithActiveMoves(from, to, piece.getColor())) return false;
+            if (!isPathClearWithActiveMoves(from, to, isSquareOccupiedInAir)) return false;
         }
 
         return true;
     }
 
-    private boolean isValidPawnMove(Position from, Position to, Piece pawn) {
+    private boolean isValidPawnMove(Position from, Position to, Piece pawn, Predicate<Position> isSquareOccupiedInAir) {
         int deltaRow = to.getRow() - from.getRow();
         int deltaCol = to.getCol() - from.getCol();
         int absCol = Math.abs(deltaCol);
@@ -72,7 +80,7 @@ public class MoveValidator {
         Piece targetPiece = board.getPiece(to);
 
         if (deltaCol == 0) {
-            if (targetPiece != null || movementEngine.isSquareOccupiedByActiveMove(to, pawn.getColor())) {
+            if (targetPiece != null || isSquareOccupiedInAir.test(to)) {
                 return false;
             }
 
@@ -82,7 +90,7 @@ public class MoveValidator {
 
             if (deltaRow == 2 * direction && from.getRow() == startingRow) {
                 Position middlePos = new Position(from.getRow() + direction, from.getCol());
-                if (board.getPiece(middlePos) != null || movementEngine.isSquareOccupiedByActiveMove(middlePos, pawn.getColor())) {
+                if (board.getPiece(middlePos) != null || isSquareOccupiedInAir.test(middlePos)) {
                     return false;
                 }
                 return true;

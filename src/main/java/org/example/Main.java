@@ -1,5 +1,10 @@
 package org.example;
 
+import org.example.core.GameEngine;
+import org.example.io.BoardParser;
+import org.example.model.Board;
+import org.example.input.GameCommand;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -48,62 +53,16 @@ public class Main {
             Board board = BoardParser.parse(boardLines);
 
             // 2. Initialize the game controller with the parsed board
-            GameController gameController = new GameController(board);
+            GameEngine gameEngine = new GameEngine(board);
 
             // 3. Process and execute each command sequentially
             for (String commandLine : commandLines) {
-                executeCommand(commandLine, gameController);
+                GameCommand.parseAndExecute(commandLine, gameEngine);
             }
 
         } catch (IllegalArgumentException e) {
             // Prints the exact VPL validation error message
             System.out.println(e.getMessage());
-        }
-    }
-
-    // Helper method to parse and route commands to the GameController
-    private static void executeCommand(String commandLine, GameController gameController) {
-        String lowerCommand = commandLine.toLowerCase();
-
-        if (lowerCommand.equals("print board")) {
-            gameController.printBoard();
-        }
-        else if (lowerCommand.startsWith("click ")) {
-            // Split by spaces, expected format: click <x> <y>
-            String[] tokens = commandLine.split("\\s+");
-            if (tokens.length == 3) {
-                try {
-                    int x = Integer.parseInt(tokens[1]);
-                    int y = Integer.parseInt(tokens[2]);
-                    gameController.handleClick(x, y);
-                } catch (NumberFormatException e) {
-                    // Soft ignore or log if parsing fails (VPL input is usually well-formed)
-                }
-            }
-        }
-        else if (lowerCommand.startsWith("jump ")) {
-            String[] tokens = commandLine.split("\\s+");
-            if (tokens.length == 3) {
-                try {
-                    int x = Integer.parseInt(tokens[1]);
-                    int y = Integer.parseInt(tokens[2]);
-                    gameController.handleJump(x, y);
-                } catch (NumberFormatException e) {
-                    // Soft ignore
-                }
-            }
-        }
-        else if (lowerCommand.startsWith("wait ")) {
-            // Split by spaces, expected format: wait <ms>
-            String[] tokens = commandLine.split("\\s+");
-            if (tokens.length == 2) {
-                try {
-                    long ms = Long.parseLong(tokens[1]);
-                    gameController.advanceTime(ms);
-                } catch (NumberFormatException e) {
-                    // Soft ignore if parsing fails
-                }
-            }
         }
     }
 }

@@ -3,6 +3,7 @@ package org.example.realtime;
 import org.example.model.Board;
 import org.example.model.Piece;
 import org.example.model.Position;
+import org.example.rules.MoveRules;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -100,15 +101,53 @@ public class MovementEngine {
         while (iterator.hasNext()) {
             ActiveMove move = iterator.next();
             if (!move.isJump() && move.getTo().equals(activeJump.getTo()) && move.getPiece().getColor() != activeJump.getPiece().getColor()) {
-                long enemyDistance = Math.max(Math.abs(move.getTo().getRow() - move.getFrom().getRow()), Math.abs(move.getTo().getCol() - move.getFrom().getCol()));
-                long enemyStartTime = move.getArrivalTimeMillis() - (enemyDistance * MOVE_DURATION_PER_SQUARE);
-                long jumpStartTime = activeJump.getArrivalTimeMillis() - JUMP_DURATION;
+                int deltaRow = Math.abs(move.getTo().getRow() - move.getFrom().getRow());
+                int deltaCol = Math.abs(move.getTo().getCol() - move.getFrom().getCol());
+                int enemyDistance = Math.max(deltaRow, deltaCol);
+
+                // שימוש בלעדי במתודות החדשות (הסרנו את הכפילות הישנה)
+                long enemyStartTime = move.getStartTimeMillis(enemyDistance);
+                long jumpStartTime = activeJump.getStartTimeMillis(0);
 
                 if (jumpStartTime == enemyStartTime) {
                     board.setPiece(move.getFrom().getRow(), move.getFrom().getCol(), null);
                     iterator.remove();
                 }
             }
+        }
+    }
+
+    public void applyMoveToBoard(Position from, Position to) {
+        Piece targetPiece = board.getPiece(to);
+        if (targetPiece != null && targetPiece.getType() == Piece.Type.KING) {
+            isGameOver = true;
+        }
+        board.movePiece(from, to);
+    }
+
+    public void handleJumpExecution(Position pos, MoveRules moveRules) {
+        Piece piece = board.getPiece(pos);
+        if (piece == null || isPieceMovingFrom(pos)) return;
+
+        ActiveMove threateningEnemyMove = null;
+        for (ActiveMove move : activeMoves) {
+            if (move.getTo().equals(pos) && move.getPiece().getColor() != piece.getColor()) {
+                int distance = moveRules.calculateDistance(move.getFrom(), move.getTo());
+                long moveStartTime = move.getStartTimeMillis(distance);
+                if (gameTimeMillis > moveStartTime) {
+                    threateningEnemyMove = move;
+                    break;
+                }
+            }
+        }
+
+        if (threateningEnemyMove != null) {
+            applyMoveToBoard(threateningEnemyMove.getFrom(), threateningEnemyMove.getTo());
+            handlePawnPromotion(threateningEnemyMove);
+            removeMove(threateningEnemyMove);
+        } else {
+            long arrivalTime = gameTimeMillis + JUMP_DURATION;
+            addMove(new ActiveMove(pos, pos, piece, arrivalTime, true));
         }
     }
 

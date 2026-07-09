@@ -28,4 +28,11 @@ public class ActiveMove {
     public boolean isComplete(long currentTimeMillis) {
         return currentTimeMillis >= arrivalTimeMillis;
     }
+
+    public long getStartTimeMillis(int distance) {
+        if (isJump) {
+            return arrivalTimeMillis - MovementEngine.JUMP_DURATION;
+        }
+        return arrivalTimeMillis - (distance * MovementEngine.MOVE_DURATION_PER_SQUARE);
+    }
 }

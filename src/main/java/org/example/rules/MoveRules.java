@@ -76,7 +76,7 @@ public class MoveRules {
         int absCol = Math.abs(deltaCol);
 
         int direction = (pawn.getColor() == Piece.Color.WHITE) ? -1 : 1;
-        int startingRow = (pawn.getColor() == Piece.Color.WHITE) ? (board.getHeight() - 1) : 0;
+        int startingRow = (pawn.getColor() == Piece.Color.WHITE) ? (board.getHeight() - 2) : 1;
         Piece targetPiece = board.getPiece(to);
 
         if (deltaCol == 0) {

@@ -8,8 +8,9 @@ import org.example.io.BoardPrinter;
 import org.example.realtime.ActiveMove;
 import org.example.realtime.MovementEngine;
 import org.example.rules.MoveRules;
+import org.example.input.GameEngineActions;
 
-public class GameEngine {
+public class GameEngine implements GameEngineActions {
     private final Board board;
     private final MovementEngine movementEngine;
     private final MoveRules moveRules;
@@ -34,6 +35,17 @@ public class GameEngine {
         interactionHandler.handleJump(x, y);
     }
 
+    @Override
+    public boolean isGameOver() {
+        return movementEngine.isGameOver();
+    }
+
+    @Override
+    public boolean isPieceMovingFrom(Position pos) {
+        return movementEngine.isPieceMovingFrom(pos);
+    }
+
+    @Override
     public void tryExecuteClickMove(Position from, Position to, Piece selectedPiece) {
         Piece.Color opponentColor = (selectedPiece.getColor() == Piece.Color.WHITE) ? Piece.Color.BLACK : Piece.Color.WHITE;
 
@@ -49,6 +61,7 @@ public class GameEngine {
         }
     }
 
+    @Override
     public void tryExecuteJump(Position pos) {
         movementEngine.handleJumpExecution(pos, moveRules);
     }

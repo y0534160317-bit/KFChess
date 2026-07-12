@@ -16,7 +16,7 @@ public class ActiveMove {
         this.to = to;
         this.piece = piece;
         this.arrivalTimeMillis = arrivalTimeMillis;
-        this.isJump = isJump; // כעת זה יעבוד בצורה מושלמת
+        this.isJump = isJump;
     }
 
     public Position getFrom() { return from; }

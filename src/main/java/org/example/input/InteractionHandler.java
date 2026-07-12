@@ -3,7 +3,7 @@ package org.example.input;
 import org.example.model.Board;
 import org.example.model.Piece;
 import org.example.model.Position;
-
+import org.example.model.CoordinateMapper;
 
 public class InteractionHandler {
     private final Board board;
@@ -19,9 +19,8 @@ public class InteractionHandler {
     public void handleClick(int x, int y) {
         if (actions.isGameOver()) return;
 
-        int row = y / Board.CELL_SIZE;
-        int col = x / Board.CELL_SIZE;
-        Position clickedPos = new Position(row, col);
+        Position clickedPos = CoordinateMapper.toPosition(x, y);
+
 
         if (!board.isWithinBounds(clickedPos)) return;
 
@@ -50,9 +49,7 @@ public class InteractionHandler {
     public void handleJump(int x, int y) {
         if (actions.isGameOver()) return;
 
-        int row = y / Board.CELL_SIZE;
-        int col = x / Board.CELL_SIZE;
-        Position pos = new Position(row, col);
+        Position pos = CoordinateMapper.toPosition(x, y);
 
         if (!board.isWithinBounds(pos)) {
             selectedPosition = null;

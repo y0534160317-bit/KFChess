@@ -1,78 +1,68 @@
 package org.example.core;
 
-import org.example.input.InteractionHandler;
+import org.example.input.GameEngineActions;
 import org.example.model.Board;
 import org.example.model.Piece;
 import org.example.model.Position;
-import org.example.io.BoardPrinter;
-import org.example.realtime.ActiveMove;
-import org.example.realtime.MovementEngine;
-import org.example.rules.MoveRules;
-import org.example.input.GameEngineActions;
+import org.example.realtime.RealTimeArbiter;
+import org.example.rules.RuleEngine; // מנוע החוקים הפשוטים שנבנה מייד
+import org.example.input.InteractionHandler;
 
 public class GameEngine implements GameEngineActions {
     private final Board board;
-    private final MovementEngine movementEngine;
-    private final MoveRules moveRules;
-    private final InteractionHandler interactionHandler;
+    private final RealTimeArbiter arbiter;
+    private final RuleEngine ruleEngine;
 
-    public GameEngine(Board board) {
+    public GameEngine(Board board, RealTimeArbiter arbiter, RuleEngine ruleEngine) {
         this.board = board;
-        this.movementEngine = new MovementEngine(board);
-        this.moveRules = new MoveRules(board);
-        this.interactionHandler = new InteractionHandler(board, this);
+        this.arbiter = arbiter;
+        this.ruleEngine = ruleEngine;
     }
 
-    public MovementEngine getMovementEngine() { return movementEngine; }
-    public MoveRules getMoveRules() { return moveRules; }
-
-
-    public void handleClick(int x, int y) {
-        interactionHandler.handleClick(x, y);
-    }
-
-    public void handleJump(int x, int y) {
-        interactionHandler.handleJump(x, y);
+    public Board getBoard() {
+        return this.board;
     }
 
     @Override
     public boolean isGameOver() {
-        return movementEngine.isGameOver();
+        return arbiter.isKingCaptured();
     }
 
     @Override
-    public boolean isPieceMovingFrom(Position pos) {
-        return movementEngine.isPieceMovingFrom(pos);
+    public boolean isPieceMoving(Piece piece) {
+        return arbiter.isPieceInMotion(piece);
     }
 
     @Override
-    public void tryExecuteClickMove(Position from, Position to, Piece selectedPiece) {
-        Piece.Color opponentColor = (selectedPiece.getColor() == Piece.Color.WHITE) ? Piece.Color.BLACK : Piece.Color.WHITE;
+    public boolean isPieceReady(Piece piece) {
+        // הכלי מוכן אם הוא לא נמצא כרגע בתנועה באוויר
+        return !arbiter.isPieceInMotion(piece);
+    }
 
-        if (!movementEngine.isColorMoving(opponentColor) &&
-                !movementEngine.isPieceMovingTo(to) &&
-                moveRules.isValidMove(from, to, selectedPiece, pos -> movementEngine.isSquareOccupiedByActiveMove(pos, selectedPiece.getColor()))) {
+    @Override
+    public void requestMove(Position source, Position destination) {
+        if (isGameOver()) return;
 
-            int distance = moveRules.calculateDistance(from, to);
-            long totalTravelTime = distance * MovementEngine.MOVE_DURATION_PER_SQUARE;
-            long arrivalTime = movementEngine.getGameTimeMillis() + totalTravelTime;
+        Piece piece = board.getPiece(source);
+        if (piece == null) return;
 
-            movementEngine.addMove(new ActiveMove(from, to, selectedPiece, arrivalTime, false));
+        // וידוא חוקיות המהלך במנוע החוקים הטהור לפני תחילת התנועה בזמן אמת
+        if (!ruleEngine.isValidMove(board, source, destination)) {
+            return; // מהלך לא חוקי (למשל: כלי חבר, או מהלך לא תואם לסוג הכלי)
         }
+
+        // שליחת הפקודה לארביטר שיתחיל את התנועה על ציר הזמן
+        arbiter.startMove(piece, source, destination);
     }
 
     @Override
-    public void tryExecuteJump(Position pos) {
-        movementEngine.handleJumpExecution(pos, moveRules);
-    }
+    public void requestJump(Position position) {
+        if (isGameOver()) return;
 
+        Piece piece = board.getPiece(position);
+        if (piece == null) return;
 
-    public void advanceTime(long millis) {
-        movementEngine.advanceTime(millis);
-    }
-
-    public void printBoard() {
-        BoardPrinter printer = new BoardPrinter();
-        printer.print(board);
+        // שליחת פקודת קפיצה לארביטר
+        arbiter.startJump(piece, position);
     }
 }

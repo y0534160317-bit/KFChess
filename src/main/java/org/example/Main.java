@@ -1,9 +1,15 @@
 package org.example;
 
+import org.example.command.CommandExecutor;
+import org.example.command.CommandParser;
+import org.example.command.GameCommand;
 import org.example.core.GameEngine;
 import org.example.io.BoardParser;
 import org.example.model.Board;
-import org.example.input.GameCommand;
+import org.example.realtime.CollisionResolver;
+import org.example.realtime.RealTimeArbiter;
+import org.example.rules.RuleEngine;
+import org.example.input.InteractionHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +42,7 @@ public class Main {
                 continue;
             }
 
-            // Collect board configuration lines
+            // Collect board static public final String var = ;nfiguration lines
             if (readingBoard) {
                 boardLines.add(line);
             }
@@ -47,21 +53,37 @@ public class Main {
         }
         scanner.close();
 
-        // Process and validate the board inside a try-catch block
         try {
-            // 1. Parse and create the initial board
+            // 1. יצירת הלוח
             Board board = BoardParser.parse(boardLines);
 
-            // 2. Initialize the game controller with the parsed board
-            GameEngine gameEngine = new GameEngine(board);
+            // 2. אתחול מנועי התשתית (סדר החשיבות: Resolver -> Arbiter -> RuleEngine)
+            CollisionResolver resolver = new CollisionResolver();
+            RealTimeArbiter arbiter = new RealTimeArbiter(board, resolver);
+            RuleEngine ruleEngine = new RuleEngine();
 
-            // 3. Process and execute each command sequentially
+            // 3. אתחול ה-Engine עם הרכיבים החדשים
+            GameEngine gameEngine = new GameEngine(board, arbiter, ruleEngine);
+
+            // 4. אתחול רכיבי הפקודות (Parser ו-Executor במקום הקריאה הסטטית הישנה)
+
+
+            CommandParser parser = new CommandParser();
+
+            InteractionHandler interactionHandler = new org.example.input.InteractionHandler(board, gameEngine);
+            CommandExecutor executor = new CommandExecutor(gameEngine, arbiter ,interactionHandler );
+
+            // 5. הרצת פקודות
             for (String commandLine : commandLines) {
-                GameCommand.parseAndExecute(commandLine, gameEngine);
+                try {
+                    GameCommand command = parser.parse(commandLine);
+                    executor.execute(command);
+                } catch (IllegalArgumentException e) {
+                    System.out.println(e.getMessage());
+                }
             }
 
         } catch (IllegalArgumentException e) {
-            // Prints the exact VPL validation error message
             System.out.println(e.getMessage());
         }
     }

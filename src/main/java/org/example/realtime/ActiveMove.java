@@ -31,8 +31,8 @@ public class ActiveMove {
 
     public long getStartTimeMillis(int distance) {
         if (isJump) {
-            return arrivalTimeMillis - MovementEngine.JUMP_DURATION;
+            return arrivalTimeMillis - RealTimeArbiter.JUMP_DURATION;
         }
-        return arrivalTimeMillis - (distance * MovementEngine.MOVE_DURATION_PER_SQUARE);
+        return arrivalTimeMillis - (distance * RealTimeArbiter.MOVE_DURATION_PER_SQUARE);
     }
 }

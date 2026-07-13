@@ -4,6 +4,7 @@ import org.example.input.GameEngineActions;
 import org.example.model.Board;
 import org.example.model.Piece;
 import org.example.model.Position;
+import org.example.model.GameState;
 import org.example.realtime.RealTimeArbiter;
 import org.example.rules.RuleEngine; // מנוע החוקים הפשוטים שנבנה מייד
 import org.example.input.InteractionHandler;
@@ -12,11 +13,14 @@ public class GameEngine implements GameEngineActions {
     private final Board board;
     private final RealTimeArbiter arbiter;
     private final RuleEngine ruleEngine;
+    private final GameState gameState;
 
-    public GameEngine(Board board, RealTimeArbiter arbiter, RuleEngine ruleEngine) {
+
+    public GameEngine(Board board, RealTimeArbiter arbiter, RuleEngine ruleEngine, GameState gameState) {
         this.board = board;
         this.arbiter = arbiter;
         this.ruleEngine = ruleEngine;
+        this.gameState = gameState;
     }
 
     public Board getBoard() {
@@ -25,8 +29,12 @@ public class GameEngine implements GameEngineActions {
 
     @Override
     public boolean isGameOver() {
-        return arbiter.isKingCaptured();
+        if (arbiter.isKingCaptured()) {
+            gameState.setGameOver(true);
+        }
+        return gameState.isGameOver();
     }
+
 
     @Override
     public boolean isPieceMoving(Piece piece) {
@@ -40,8 +48,41 @@ public class GameEngine implements GameEngineActions {
     }
 
     @Override
+    public boolean isPositionWithinBounds(Position pos) {
+        return board.isWithinBounds(pos);
+    }
+
+    @Override
+    public boolean hasSelectablePieceAt(Position pos) {
+        // 1. בודקים אם בכלל יש כלי במיקום הזה בלוח
+        Piece piece = board.getPiece(pos);
+        if (piece == null) {
+            return false;
+        }
+
+        // 2. בודקים האם הכלי במצב שמאפשר בחירה (לא בתנועה ומוכן)
+        return isPieceReady(piece) && !isPieceMoving(piece);
+    }
+
+    @Override
+    public boolean arePiecesSameColor(Position pos1, Position pos2) {
+        Piece piece1 = board.getPiece(pos1);
+        Piece piece2 = board.getPiece(pos2);
+
+        // אם אחד המיקומים ריק, הם בטוח לא מאותו הצבע
+        if (piece1 == null || piece2 == null) {
+            return false;
+        }
+
+        // השוואת הצבעים של שני הכלים
+        return piece1.getColor() == piece2.getColor();
+    }
+
+    @Override
     public void requestMove(Position source, Position destination) {
-        if (isGameOver()) return;
+        if (gameState.isGameOver() || arbiter.isKingCaptured()) {
+            return;
+        }
 
         Piece piece = board.getPiece(source);
         if (piece == null) return;
@@ -57,7 +98,9 @@ public class GameEngine implements GameEngineActions {
 
     @Override
     public void requestJump(Position position) {
-        if (isGameOver()) return;
+        if (gameState.isGameOver()) {
+            return;
+        }
 
         Piece piece = board.getPiece(position);
         if (piece == null) return;

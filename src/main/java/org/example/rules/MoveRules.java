@@ -9,7 +9,6 @@ import java.util.function.Predicate;
 public class MoveRules {
     private final Board board;
     private final PieceRules pieceRules;
-//    private final MovementEngine// movementEngine;//
 
     public MoveRules(Board board) {
         this.board = board;

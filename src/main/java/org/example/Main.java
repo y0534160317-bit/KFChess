@@ -4,8 +4,9 @@ import org.example.command.CommandExecutor;
 import org.example.command.CommandParser;
 import org.example.command.GameCommand;
 import org.example.core.GameEngine;
-import org.example.io.BoardParser;
+import org.example.model.BoardParser;
 import org.example.model.Board;
+import org.example.model.GameState;
 import org.example.realtime.CollisionResolver;
 import org.example.realtime.RealTimeArbiter;
 import org.example.rules.RuleEngine;
@@ -61,16 +62,17 @@ public class Main {
             CollisionResolver resolver = new CollisionResolver();
             RealTimeArbiter arbiter = new RealTimeArbiter(board, resolver);
             RuleEngine ruleEngine = new RuleEngine();
+            GameState gameState = new GameState();
 
             // 3. אתחול ה-Engine עם הרכיבים החדשים
-            GameEngine gameEngine = new GameEngine(board, arbiter, ruleEngine);
+            GameEngine gameEngine = new GameEngine(board, arbiter, ruleEngine, gameState);
 
             // 4. אתחול רכיבי הפקודות (Parser ו-Executor במקום הקריאה הסטטית הישנה)
 
 
             CommandParser parser = new CommandParser();
 
-            InteractionHandler interactionHandler = new org.example.input.InteractionHandler(board, gameEngine);
+            InteractionHandler interactionHandler = new InteractionHandler(gameEngine);
             CommandExecutor executor = new CommandExecutor(gameEngine, arbiter ,interactionHandler );
 
             // 5. הרצת פקודות

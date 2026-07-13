@@ -8,8 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RealTimeArbiter {
-    public static final long MOVE_MS_PER_CELL = 1000;
-    public static final long JUMP_DURATION_MS = 1000;
+    public static final long MOVE_DURATION_PER_SQUARE = 1000;
+
+    public static final long JUMP_DURATION = 1000;
 
     private final Board board;
     private final CollisionResolver collisionResolver;
@@ -27,12 +28,22 @@ public class RealTimeArbiter {
         this.kingCaptured = false;
     }
 
+    public void setGameOver(boolean isGameOver) {
+        if (isGameOver) {
+            this.kingCaptured = true; // נסמן את הקינג ככבוש כדי ש-isKingCaptured יחזיר true
+        }
+    }
+
     public void startMove(Piece piece, Position source, Position destination) {
+        if (this.kingCaptured) {
+            return; // מונע לחלוטין רישום תנועות חדשות אחרי שהמלך נלכד
+        }
+
         int distance = Math.max(
                 Math.abs(destination.getRow() - source.getRow()),
                 Math.abs(destination.getCol() - source.getCol())
         );
-        long duration = distance * MOVE_MS_PER_CELL;
+        long duration = distance * MOVE_DURATION_PER_SQUARE;
 
         activeMotions.add(new ActiveMotion(
                 ++nextSequence, piece, source, destination,
@@ -42,9 +53,12 @@ public class RealTimeArbiter {
     }
 
     public void startJump(Piece piece, Position position) {
+        if (this.kingCaptured) {
+            return; // מונע לחלוטין רישום תנועות חדשות אחרי שהמלך נלכד
+        }
         activeMotions.add(new ActiveMotion(
                 ++nextSequence, piece, position, position,
-                currentTimeMillis, currentTimeMillis + JUMP_DURATION_MS,
+                currentTimeMillis, currentTimeMillis + JUMP_DURATION,
                 ActiveMotion.ActionType.JUMP
         ));
     }
@@ -71,9 +85,6 @@ public class RealTimeArbiter {
             Position dest = motion.getDestination();
 
             Piece currentAtSource = board.getPiece(src);
-            if (currentAtSource != null && currentAtSource.equals(movingPiece)) {
-                board.setPiece(src.getRow(), src.getCol(), null);
-            }
 
             Piece target = board.getPiece(dest);
             if (target != null && target.getColor() != movingPiece.getColor()) {
@@ -81,14 +92,17 @@ public class RealTimeArbiter {
                     kingCaptured = true;
                 }
             }
+            // תנועה לוגית נקייה במקום שתי קריאות setPiece גולמיות
+            if (currentAtSource != null && currentAtSource.equals(movingPiece)) {
+                board.executeMove(src, dest);
+            }
 
-            board.setPiece(dest.getRow(), dest.getCol(), movingPiece);
 
+            // הכתרה מבוקרת באמצעות promotePawn
             if (movingPiece.getType() == Piece.Type.PAWN) {
                 int targetRow = dest.getRow();
                 if (targetRow == 0 || targetRow == board.getHeight() - 1) {
-                    board.setPiece(targetRow, dest.getCol(),
-                            new Piece(movingPiece.getColor(), Piece.Type.QUEEN));
+                    board.promotePawn(new Position(targetRow, dest.getCol()), movingPiece.getColor());
                 }
             }
         }
@@ -107,10 +121,8 @@ public class RealTimeArbiter {
 
                 if (first.getPiece().getColor() == second.getPiece().getColor()) continue;
 
-                // בדיקה 1: הגעה לאותו יעד משותף
                 boolean sameDestination = first.getDestination().equals(second.getDestination());
 
-                // בדיקה 2: התנגשות חזיתית באוויר (האחד נע לתוך המקור של השני ולהפך)
                 boolean headOnCollision = first.getSource().equals(second.getDestination())
                         && first.getDestination().equals(second.getSource());
 
@@ -120,8 +132,8 @@ public class RealTimeArbiter {
 
                     loser.cancel();
 
-                    // מחיקת הכלי המפסיד מהלוח כדי שלא יופיע בסיום
-                    board.setPiece(loser.getSource().getRow(), loser.getSource().getCol(), null);
+                    // הסרת הכלי המפסיד מהלוח בצורה אנקפסולרית
+                    board.removePiece(loser.getSource());
                 }
             }
         }
@@ -145,7 +157,8 @@ public class RealTimeArbiter {
 
                 if (motion.getStartTimeMillis() == activeJump.getStartTimeMillis()) {
                     motion.cancel();
-                    board.setPiece(motion.getSource().getRow(), motion.getSource().getCol(), null);
+                    // תיקון המשתנה: שימוש ב-motion.getSource() במקום loser שלא היה קיים בפונקציה זו
+                    board.removePiece(motion.getSource());
                 }
             }
         }

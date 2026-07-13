@@ -13,7 +13,7 @@ public class Board {
     }
 
     // Places a piece at a specific coordinate on the grid
-    public void setPiece(int row, int col, Piece piece) {
+    void setPiece(int row, int col, Piece piece) {
         grid[row][col] = piece;
     }
 
@@ -46,14 +46,24 @@ public class Board {
         return grid[pos.getRow()][pos.getCol()];
     }
 
-    // Moves a piece from one position to another, clearing the old position
-    public void movePiece(Position from, Position to) {
-        if (!isWithinBounds(from) || !isWithinBounds(to)) {
-            return;
-        }
+
+
+    // בתוך מחלקת Board
+    public void executeMove(Position from, Position to) {
+        if (!isWithinBounds(from) || !isWithinBounds(to)) return;
+
         Piece pieceToMove = getPiece(from);
         grid[to.getRow()][to.getCol()] = pieceToMove;
-        grid[from.getRow()][from.getCol()] = null; // Clear old square
+        grid[from.getRow()][from.getCol()] = null;
+    }
+
+    public void removePiece(Position pos) {
+        if (!isWithinBounds(pos)) return;
+        grid[pos.getRow()][pos.getCol()] = null;
+    }
+    public void promotePawn(Position pos, Piece.Color color) {
+        if (!isWithinBounds(pos)) return;
+        grid[pos.getRow()][pos.getCol()] = new Piece(color, Piece.Type.QUEEN);
     }
 
 }

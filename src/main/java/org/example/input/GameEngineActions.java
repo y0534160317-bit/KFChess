@@ -11,6 +11,12 @@ public interface GameEngineActions {
 
     boolean isPieceReady(Piece piece);
 
+    boolean isPositionWithinBounds(Position pos);
+
+    boolean hasSelectablePieceAt(Position pos);
+
+    boolean arePiecesSameColor(Position pos1, Position pos2);
+
     void requestMove(Position source, Position destination);
 
     void requestJump(Position position);

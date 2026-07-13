@@ -1,17 +1,13 @@
 package org.example.input;
 
-import org.example.model.Board;
-import org.example.model.Piece;
 import org.example.model.Position;
 import org.example.model.CoordinateMapper;
 
 public class InteractionHandler {
-    private final Board board;
     private final GameEngineActions actions;
     private Position selectedPosition;
 
-    public InteractionHandler(Board board, GameEngineActions actions) {
-        this.board = board;
+    public InteractionHandler(GameEngineActions actions) {
         this.actions = actions;
         this.selectedPosition = null;
     }
@@ -21,21 +17,19 @@ public class InteractionHandler {
 
         Position clickedPos = CoordinateMapper.toPosition(x, y);
 
-        if (!board.isWithinBounds(clickedPos)) {
+        // שימוש במתודת גבולות מופשטת דרך ה-Actions
+        if (!actions.isPositionWithinBounds(clickedPos)) {
             clearSelection();
             return;
         }
-
-        Piece clickedPiece = board.getPiece(clickedPos);
 
         if (selectedPosition == null) {
             trySelect(clickedPos);
             return;
         }
 
-        // תיקון: החלפת בחירה אם לוחצים על כלי אחר מאותו צבע
-        Piece selectedPiece = board.getPiece(selectedPosition);
-        if (clickedPiece != null && selectedPiece != null && clickedPiece.getColor() == selectedPiece.getColor()) {
+        // שאילתת צבע מופשטת ללא חשיפת אובייקט הנתונים הפנימי
+        if (actions.arePiecesSameColor(selectedPosition, clickedPos)) {
             trySelect(clickedPos);
             return;
         }
@@ -59,7 +53,7 @@ public class InteractionHandler {
         Position pos = CoordinateMapper.toPosition(x, y);
         clearSelection();
 
-        if (!board.isWithinBounds(pos)) {
+        if (!actions.isPositionWithinBounds(pos)) {
             return;
         }
 
@@ -67,15 +61,9 @@ public class InteractionHandler {
     }
 
     private void trySelect(Position pos) {
-        Piece piece = board.getPiece(pos);
-        if (piece == null) {
+        if (!actions.hasSelectablePieceAt(pos)) {
             return;
         }
-
-        if (actions.isPieceMoving(piece) || !actions.isPieceReady(piece)) {
-            return;
-        }
-
         selectedPosition = pos;
     }
 

@@ -1,7 +1,4 @@
-package org.example.io;
-
-import org.example.model.Board;
-import org.example.model.Piece;
+package org.example.model;
 
 import java.util.List;
 

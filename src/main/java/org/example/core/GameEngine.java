@@ -8,6 +8,7 @@ import org.example.model.GameState;
 import org.example.realtime.RealTimeArbiter;
 import org.example.rules.RuleEngine; // מנוע החוקים הפשוטים שנבנה מייד
 import org.example.input.InteractionHandler;
+import org.example.view.GameSnapshot;
 
 public class GameEngine implements GameEngineActions {
     private final Board board;
@@ -107,5 +108,15 @@ public class GameEngine implements GameEngineActions {
 
         // שליחת פקודת קפיצה לארביטר
         arbiter.startJump(piece, position);
+    }
+
+    @Override
+    public GameSnapshot snapshot(Position selectedPosition) {
+        return new GameSnapshot(
+                this.board,
+                this.arbiter.getActiveMotions(),
+                selectedPosition, // עובר כפרמטר
+                this.arbiter.getCurrentTimeMillis()
+        );
     }
 }

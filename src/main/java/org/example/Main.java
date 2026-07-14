@@ -11,6 +11,8 @@ import org.example.realtime.CollisionResolver;
 import org.example.realtime.RealTimeArbiter;
 import org.example.rules.RuleEngine;
 import org.example.input.InteractionHandler;
+import org.example.view.GameWindow;    // הוספת ה-View
+import org.example.view.ImgRenderer;   // הוספת ה-View
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,58 +26,54 @@ public class Main {
         boolean readingBoard = false;
         boolean readingCommands = false;
 
-        // Read all inputs line by line
         while (scanner.hasNextLine()) {
             String line = scanner.nextLine().trim();
-            if (line.isEmpty()) {
-                continue;
-            }
+            if (line.isEmpty()) continue;
 
             if (line.equalsIgnoreCase("Board:")) {
                 readingBoard = true;
                 readingCommands = false;
                 continue;
             }
-
             if (line.equalsIgnoreCase("Commands:")) {
                 readingBoard = false;
                 readingCommands = true;
                 continue;
             }
 
-            // Collect board static public final String var = ;nfiguration lines
-            if (readingBoard) {
-                boardLines.add(line);
-            }
-            // Collect command lines to execute later
-            else if (readingCommands) {
-                commandLines.add(line);
-            }
+            if (readingBoard) boardLines.add(line);
+            else if (readingCommands) commandLines.add(line);
         }
         scanner.close();
 
-        try {
-            // 1. יצירת הלוח
-            Board board = BoardParser.parse(boardLines);
 
-            // 2. אתחול מנועי התשתית (סדר החשיבות: Resolver -> Arbiter -> RuleEngine)
+        // ניסוי: אתחל את ה-View פה מיד!
+        System.out.println("Starting Window...");
+
+        try {
+            // 1. אתחול ליבת המודל
+            Board board = BoardParser.parse(boardLines);
             CollisionResolver resolver = new CollisionResolver();
             RealTimeArbiter arbiter = new RealTimeArbiter(board, resolver);
             RuleEngine ruleEngine = new RuleEngine();
             GameState gameState = new GameState();
 
-            // 3. אתחול ה-Engine עם הרכיבים החדשים
+            // 2. אתחול ה-Engine
             GameEngine gameEngine = new GameEngine(board, arbiter, ruleEngine, gameState);
 
-            // 4. אתחול רכיבי הפקודות (Parser ו-Executor במקום הקריאה הסטטית הישנה)
-
-
+            // 3. אתחול רכיבי הקלט והפקודות
             CommandParser parser = new CommandParser();
-
             InteractionHandler interactionHandler = new InteractionHandler(gameEngine);
-            CommandExecutor executor = new CommandExecutor(gameEngine, arbiter ,interactionHandler );
+            CommandExecutor executor = new CommandExecutor(gameEngine, arbiter, interactionHandler);
 
-            // 5. הרצת פקודות
+            // 4. אתחול רכיבי ה-View (הוספה חדשה)
+            ImgRenderer renderer = new ImgRenderer();
+            GameWindow window = new GameWindow(gameEngine, interactionHandler, renderer);
+
+            // הפעלת החלון הגרפי
+            window.start();
+
+            // 5. הרצת פקודות (טקסטואליות)
             for (String commandLine : commandLines) {
                 try {
                     GameCommand command = parser.parse(commandLine);

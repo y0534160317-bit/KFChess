@@ -2,8 +2,10 @@ package org.example.input;
 
 import org.example.model.Position;
 import org.example.model.CoordinateMapper;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 
-public class InteractionHandler {
+public class InteractionHandler implements MouseListener {
     private final GameEngineActions actions;
     private Position selectedPosition;
 
@@ -12,12 +14,21 @@ public class InteractionHandler {
         this.selectedPosition = null;
     }
 
-    public void handleClick(int x, int y) {
+    // נקודת כניסה מהעכבר (מטפלת בפיקסלים)
+    @Override
+    public void mousePressed(MouseEvent e) {
+        Position pos = CoordinateMapper.toPosition(e.getX(), e.getY(),
+                e.getComponent().getWidth(),
+                e.getComponent().getHeight());
+        handleClick(pos);
+    }
+
+    // לוגיקת ה-Click הטהורה (מקבלת מיקום לוח)
+    public void handleClick(Position clickedPos) {
         if (actions.isGameOver()) return;
 
-        Position clickedPos = CoordinateMapper.toPosition(x, y);
+        System.out.println("DEBUG: Executing click at -> Row: " + clickedPos.getRow() + ", Col: " + clickedPos.getCol());
 
-        // שימוש במתודת גבולות מופשטת דרך ה-Actions
         if (!actions.isPositionWithinBounds(clickedPos)) {
             clearSelection();
             return;
@@ -28,7 +39,6 @@ public class InteractionHandler {
             return;
         }
 
-        // שאילתת צבע מופשטת ללא חשיפת אובייקט הנתונים הפנימי
         if (actions.arePiecesSameColor(selectedPosition, clickedPos)) {
             trySelect(clickedPos);
             return;
@@ -36,42 +46,30 @@ public class InteractionHandler {
 
         Position source = selectedPosition;
         clearSelection();
-
-        if (source.equals(clickedPos)) {
-            return;
-        }
-
         actions.requestMove(source, clickedPos);
     }
 
-    public void handleJump(int x, int y) {
-        if (actions.isGameOver()) {
-            clearSelection();
-            return;
-        }
+    // לוגיקת הקפיצה
+    public void handleJump(Position pos) {
+        if (actions.isGameOver()) return;
+        if (!actions.isPositionWithinBounds(pos)) return;
 
-        Position pos = CoordinateMapper.toPosition(x, y);
         clearSelection();
-
-        if (!actions.isPositionWithinBounds(pos)) {
-            return;
-        }
-
         actions.requestJump(pos);
     }
 
     private void trySelect(Position pos) {
-        if (!actions.hasSelectablePieceAt(pos)) {
-            return;
+        if (actions.hasSelectablePieceAt(pos)) {
+            selectedPosition = pos;
         }
-        selectedPosition = pos;
     }
 
-    public void clearSelection() {
-        this.selectedPosition = null;
-    }
+    public void clearSelection() { this.selectedPosition = null; }
+    public Position getSelectedPosition() { return selectedPosition; }
 
-    public Position getSelectedPosition() {
-        return selectedPosition;
-    }
+    // מתודות ריקות לממשק
+    public void mouseReleased(MouseEvent e) {}
+    public void mouseEntered(MouseEvent e) {}
+    public void mouseExited(MouseEvent e) {}
+    public void mouseClicked(MouseEvent e) {}
 }

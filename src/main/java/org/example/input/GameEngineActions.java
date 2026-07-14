@@ -2,6 +2,7 @@ package org.example.input;
 
 import org.example.model.Piece;
 import org.example.model.Position;
+import org.example.view.GameSnapshot;
 
 public interface GameEngineActions {
 
@@ -21,4 +22,5 @@ public interface GameEngineActions {
 
     void requestJump(Position position);
 
+    GameSnapshot snapshot(Position selectedPosition);
 }

@@ -42,6 +42,7 @@ public class ActiveMotion {
     public Position getSource() { return source; }
     public Position getDestination() { return destination; }
     public long getStartTimeMillis() { return startTimeMillis; }
+    public long getArrivalTimeMillis() { return arrivalTimeMillis; }
     public boolean isCancelled() { return cancelled; }
 
     public void cancel() {

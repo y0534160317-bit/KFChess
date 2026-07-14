@@ -39,4 +39,6 @@ public class PieceRules {
                 return false;
         }
     }
+
+
 }

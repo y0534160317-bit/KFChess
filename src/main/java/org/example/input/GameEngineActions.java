@@ -22,5 +22,7 @@ public interface GameEngineActions {
 
     void requestJump(Position position);
 
+    void advanceTime(long milliseconds);
+
     GameSnapshot snapshot(Position selectedPosition);
 }

@@ -14,18 +14,29 @@ public class InteractionHandler implements MouseListener {
         this.selectedPosition = null;
     }
 
-    // נקודת כניסה מהעכבר (מטפלת בפיקסלים)
+    private long lastClickTime = 0;
+    private static final long CLICK_THRESHOLD = 200; // מילי-שניות למניעת לחיצה כפולה
+
     @Override
     public void mousePressed(MouseEvent e) {
+        // הגנה: סינון אירועים שקורים מהר מדי אחד אחרי השני
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastClickTime < CLICK_THRESHOLD) {
+            return;
+        }
+        lastClickTime = currentTime;
+
         Position pos = CoordinateMapper.toPosition(e.getX(), e.getY(),
-                e.getComponent().getWidth(),
-                e.getComponent().getHeight());
-        handleClick(pos);
+                e.getComponent().getWidth(), e.getComponent().getHeight());
+
+        // בדיקה שהמיקום שהתקבל תקין לפני המשך העיבוד
+        if (pos != null) {
+            handleClick(pos);
+        }
     }
 
-    // לוגיקת ה-Click הטהורה (מקבלת מיקום לוח)
     public void handleClick(Position clickedPos) {
-        if (actions.isGameOver()) return;
+        if (clickedPos == null || actions.isGameOver()) return;
 
         System.out.println("DEBUG: Executing click at -> Row: " + clickedPos.getRow() + ", Col: " + clickedPos.getCol());
 
@@ -44,8 +55,17 @@ public class InteractionHandler implements MouseListener {
             return;
         }
 
+        // שמירת ה-Source וביצוע פעולה רק אם יש בחירה תקינה
         Position source = selectedPosition;
+        System.out.println("DEBUG: Attempting move from " + source.getRow() + "," + source.getCol() +
+                " to " + clickedPos.getRow() + "," + clickedPos.getCol());
+        // איפוס הבחירה חייב לקרות לפני שליחת הפקודה למנוע
         clearSelection();
+
+        if (source.equals(clickedPos)) {
+            return;
+        }
+
         actions.requestMove(source, clickedPos);
     }
 

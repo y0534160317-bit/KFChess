@@ -81,15 +81,28 @@ public class GameEngine implements GameEngineActions {
 
     @Override
     public void requestMove(Position source, Position destination) {
+        System.out.println("DEBUG: requestMove received. Source: " + (source == null ? "NULL" : source.getRow() + "," + source.getCol()));
+        System.out.println("DEBUG: Board reference: " + this.board);
+        if (this.board == null) {
+            System.err.println("ERROR: Board is null in GameEngine!");
+            return;
+        }
+        Piece piece = board.getPiece(source);
+        if (piece == null) {
+            System.out.println("DEBUG: No piece found at source: " + source.getRow() + "," + source.getCol());
+            return;
+        }
+
         if (gameState.isGameOver() || arbiter.isKingCaptured()) {
             return;
         }
 
-        Piece piece = board.getPiece(source);
+
         if (piece == null) return;
 
         // וידוא חוקיות המהלך במנוע החוקים הטהור לפני תחילת התנועה בזמן אמת
         if (!ruleEngine.isValidMove(board, source, destination)) {
+            System.out.println("DEBUG: Move rejected by engine!");
             return; // מהלך לא חוקי (למשל: כלי חבר, או מהלך לא תואם לסוג הכלי)
         }
 
@@ -111,7 +124,13 @@ public class GameEngine implements GameEngineActions {
     }
 
     @Override
+    public void advanceTime(long milliseconds) {
+        arbiter.advanceTime(milliseconds);
+    }
+
+    @Override
     public GameSnapshot snapshot(Position selectedPosition) {
+      /*  System.out.println("DEBUG: Snapshot taking board with piece at 2,0: " + (board.getPiece(new Position(2,0)) != null));*/
         return new GameSnapshot(
                 this.board,
                 this.arbiter.getActiveMotions(),

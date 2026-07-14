@@ -47,7 +47,7 @@ public final class GameWindow {
         frame.setVisible(true);
     }
 
-    private void startGameLoop() {
+    /*private void startGameLoop() {
         timer = new Timer(FRAME_DELAY_MS, e -> {
             Position selected = controller.getSelectedPosition();
             GameSnapshot snapshot = engine.snapshot(selected);
@@ -57,4 +57,22 @@ public final class GameWindow {
         });
         timer.start();
     }
+    */
+    private void startGameLoop() {
+        timer = new Timer(FRAME_DELAY_MS, e -> {
+            // 1. קודם כל - נקדם את הזמן של המשחק ב-16 מילי-שניות!
+            // (וודא שיש לך מתודה כזו ב-GameEngine שקוראת ל-arbiter.advanceTime)
+            engine.advanceTime(FRAME_DELAY_MS);
+
+            // 2. עכשיו ניקח תמונת מצב מעודכנת
+            Position selected = controller.getSelectedPosition();
+            GameSnapshot snapshot = engine.snapshot(selected);
+
+            // 3. נרנדר ונציג
+            Img currentFrame = renderer.render(snapshot);
+            imageLabel.setIcon(new ImageIcon(currentFrame.get()));
+        });
+        timer.start();
+    }
+
 }

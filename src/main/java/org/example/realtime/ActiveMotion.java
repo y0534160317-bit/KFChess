@@ -3,6 +3,9 @@ package org.example.realtime;
 import org.example.model.Piece;
 import org.example.model.Position;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class ActiveMotion {
     public enum ActionType {
         MOVE, JUMP
@@ -16,6 +19,7 @@ public class ActiveMotion {
     private final long arrivalTimeMillis;
     private final ActionType actionType;
     private boolean cancelled;
+    private String currentState;
 
     public ActiveMotion(long sequence, Piece piece, Position source, Position destination,
                         long startTimeMillis, long arrivalTimeMillis, ActionType actionType) {
@@ -27,6 +31,7 @@ public class ActiveMotion {
         this.arrivalTimeMillis = arrivalTimeMillis;
         this.actionType = actionType;
         this.cancelled = false;
+        this.currentState = (actionType == ActionType.JUMP) ? "jump" : "move";
     }
 
     public boolean isComplete(long currentTimeMillis) {
@@ -48,4 +53,29 @@ public class ActiveMotion {
     public void cancel() {
         this.cancelled = true;
     }
+
+    public void updateState(long currentTimeMillis) {
+        // לוגיקה של מעבר בין מצבים (למשל: סיום תנועה עובר למנוחה)
+        if (isComplete(currentTimeMillis)) {
+            this.currentState = "short_rest";
+        }
+    }
+
+    public String getCurrentState() {
+        return currentState;
+    }
+
+    public String getCurrentState(long currentTime) {
+        if (isComplete(currentTime)) {
+            long timeSinceArrival = currentTime - arrivalTimeMillis;
+            // לאחר הגעה ליעד: אם עברו יותר מ-X שניות, עוברים למנוחה ארוכה
+            return (timeSinceArrival > 5000) ? "long_rest" : "short_rest";
+        }
+
+        // בזמן תנועה:
+        return isJump() ? "jump" : "move";
+    }
+
+
+
 }

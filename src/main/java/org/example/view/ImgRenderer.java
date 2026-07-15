@@ -1,44 +1,83 @@
 package org.example.view;
 
 //import org.example.GameSnapshot;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.model.*;
 import org.example.realtime.ActiveMotion;
+
+import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class ImgRenderer {
     private static final int CELL_SIZE = 100;
-    private final Map<String, Img> pieceImages = new HashMap<>();
 
     public ImgRenderer() {
-        loadPieceImages();
+        System.out.println("ImgRenderer Constructor started!");
+        loadPieceAnimations();
+        System.out.println("loadPieceAnimations finished!");
     }
 
-    private void loadPieceImages() {
+    private static class AnimationState {
+        AnimationConfig config;
+        List<BufferedImage> frames = new ArrayList<>();
+    }
+
+
+
+    private final Map<String, Map<String, AnimationState>> pieceAnimations = new HashMap<>();
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    //private final Map<String, Img> pieceImages = new HashMap<>();
+
+
+
+    private void loadPieceAnimations() {
         String[] colors = {"w", "b"};
         String[] types = {"K", "Q", "R", "N", "B", "P"};
+        String[] states = {"idle", "jump", "long_rest", "move", "short_rest"};
 
         for (String c : colors) {
             for (String t : types) {
-                String key = c + t;
-                String path = "/pieces/" + key + ".png";
+                String pieceKey = c + t;
+                pieceAnimations.put(pieceKey, new HashMap<>());
 
-                try (java.io.InputStream is = getClass().getResourceAsStream(path)) {
-                    if (is != null) {
-                        // כאן צריך מתודה ב-Img שתדע לקרוא מ-InputStream
-                        // אם אין לך, את יכולה להשתמש ב-ImageIO.read(is) ולהמיר ל-Img
-                        pieceImages.put(key, new Img().readFromStream(is));
-                    } else {
-                        System.err.println("Could not find: " + path);
+                for (String state : states) {
+                    try {
+                        String basePath = "/pieces/" + pieceKey + "/states/" + state;
+                        // טעינת הקונפיג
+                        InputStream configStream = getClass().getResourceAsStream(basePath + "/config.json");
+                        if (configStream != null) {
+                            AnimationState animState = new AnimationState();
+                            animState.config = objectMapper.readValue(configStream, AnimationConfig.class);
+
+                            // טעינת הפריימים מהתיקיה
+                            for (int i = 1; i <= 5; i++) { // הנחה שיש עד 10 פריימים לדוגמה
+                                InputStream imgStream = getClass().getResourceAsStream(basePath + "/sprites/" + i + ".png");
+                                if (imgStream != null) {
+                                    animState.frames.add(ImageIO.read(imgStream));
+                                } else break;
+                            }
+                            pieceAnimations.get(pieceKey).put(state, animState);
+                        }
+                    } catch (Exception e) {
+                        System.err.println("Failed to load state " + state + " for " + pieceKey);
                     }
-                } catch (Exception e) {
-                    System.err.println("Failed to load: " + key + " - " + e.getMessage());
                 }
             }
         }
+        String pieceKey = "wP"; // נבדוק רק כלי אחד כדי לא להציף את הקונסול
+        String testState = "idle";
+        String path = "pieces/" + pieceKey + "/states/" + testState + "/config.json";
+
+        java.net.URL resource = getClass().getResource(path);
+        System.out.println("Checking path: " + path);
+        System.out.println("Resource found: " + (resource != null));
     }
 
     public Img render(GameSnapshot snapshot) {
@@ -46,8 +85,10 @@ public class ImgRenderer {
 
         Img canvas = new Img();
         canvas.createEmpty(board.getWidth() * CELL_SIZE, board.getHeight() * CELL_SIZE);
+
         drawBoard(canvas, board);
-        drawPieces(canvas, board, snapshot.getActiveMotions());
+
+        drawPieces(canvas, board, snapshot.getActiveMotions(),snapshot.getCurrentTimeMillis());
         drawAnimations(canvas, snapshot.getActiveMotions(), snapshot.getCurrentTimeMillis());
 
         if (snapshot.getSelectedPosition() != null) {
@@ -70,13 +111,13 @@ public class ImgRenderer {
         }
     }
 
-    private void drawPieces(Img canvas, Board board, List<ActiveMotion> motions) {
+    private void drawPieces(Img canvas, Board board, List<ActiveMotion> motions, long currentTime) {
         for (int r = 0; r < board.getHeight(); r++) {
             for (int c = 0; c < board.getWidth(); c++) {
                 Piece p = board.getPiece(new Position(r, c));
                 // דלג אם הכלי נמצא בתנועה כדי לא לצייר אותו פעמיים
                 if (p != null && !isPieceMoving(p, motions)) {
-                    drawPiece(canvas, p, c * CELL_SIZE, r * CELL_SIZE);
+                    drawPiece(canvas, p, c * CELL_SIZE, r * CELL_SIZE, "idle", currentTime);
                 }
             }
         }
@@ -96,15 +137,26 @@ public class ImgRenderer {
 
             int currentX = startX + (int)((endX - startX) * progress);
             int currentY = startY + (int)((endY - startY) * progress);
+            drawPiece(canvas, m.getPiece(), currentX, currentY, m.getCurrentState(currentTime), currentTime);
 
-            drawPiece(canvas, m.getPiece(), currentX, currentY);
         }
     }
 
-    private void drawPiece(Img canvas, Piece p, int x, int y) {
+    private void drawPiece(Img canvas, Piece p, int x, int y, String state, long currentTime) {
         String key = "" + p.getColor().getSymbol() + p.getType().getSymbol();
-        if (pieceImages.containsKey(key)) {
-            pieceImages.get(key).drawOn(canvas, x, y);
+        Map<String, AnimationState> states = pieceAnimations.get(key);
+
+        if (states != null && states.containsKey(state)) {
+            AnimationState anim = states.get(state);
+            if (!anim.frames.isEmpty()) {
+                // חישוב אינדקס הפריים לפי FPS
+                int frameIndex = (int) (((currentTime - 0) / 1000.0) * anim.config.graphics.frames_per_sec) % anim.frames.size();
+                BufferedImage frame = anim.frames.get(frameIndex);
+
+                Graphics2D g = canvas.get().createGraphics();
+                g.drawImage(frame, x, y, CELL_SIZE, CELL_SIZE, null);
+                g.dispose();
+            }
         }
     }
 

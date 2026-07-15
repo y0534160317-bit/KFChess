@@ -3,9 +3,14 @@ package org.example.realtime;
 import org.example.model.Board;
 import org.example.model.Piece;
 import org.example.model.Position;
+import org.example.view.*;
+import org.example.view.AnimationState;
+import org.example.view.PieceAnimationState;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class RealTimeArbiter {
     public static final long MOVE_DURATION_PER_SQUARE = 1000;
@@ -18,6 +23,7 @@ public class RealTimeArbiter {
     private long currentTimeMillis;
     private long nextSequence;
     private boolean kingCaptured;
+    private final Map<Piece, PieceAnimationState> animationStates = new HashMap<>();
 
     public RealTimeArbiter(Board board, CollisionResolver collisionResolver) {
         this.board = board;
@@ -39,6 +45,11 @@ public class RealTimeArbiter {
             return; // מונע לחלוטין רישום תנועות חדשות אחרי שהמלך נלכד
         }
 
+        getAnimationState(piece).setState(
+                AnimationState.MOVE,
+                currentTimeMillis
+        );
+
         int distance = Math.max(
                 Math.abs(destination.getRow() - source.getRow()),
                 Math.abs(destination.getCol() - source.getCol())
@@ -56,6 +67,12 @@ public class RealTimeArbiter {
         if (this.kingCaptured) {
             return; // מונע לחלוטין רישום תנועות חדשות אחרי שהמלך נלכד
         }
+
+        getAnimationState(piece).setState(
+                AnimationState.JUMP,
+                currentTimeMillis
+        );
+
         activeMotions.add(new ActiveMotion(
                 ++nextSequence, piece, position, position,
                 currentTimeMillis, currentTimeMillis + JUMP_DURATION,
@@ -78,7 +95,17 @@ public class RealTimeArbiter {
         }
 
         for (ActiveMotion motion : completedMotions) {
-            if (motion.isJump()) continue;
+
+            if (motion.isJump()) {
+                getAnimationState(motion.getPiece())
+                        .setState(AnimationState.SHORT_REST,
+                                currentTimeMillis);
+
+                System.out.println(
+                        motion.getPiece() + " -> SHORT_REST"
+                );
+                continue;
+            }
 
             Piece movingPiece = motion.getPiece();
             Position src = motion.getSource();
@@ -97,13 +124,31 @@ public class RealTimeArbiter {
                 board.executeMove(src, dest);
             }
 
-
             // הכתרה מבוקרת באמצעות promotePawn
             if (movingPiece.getType() == Piece.Type.PAWN) {
                 int targetRow = dest.getRow();
                 if (targetRow == 0 || targetRow == board.getHeight() - 1) {
                     board.promotePawn(new Position(targetRow, dest.getCol()), movingPiece.getColor());
                 }
+            }
+
+            getAnimationState(movingPiece)
+                    .setState(AnimationState.SHORT_REST, currentTimeMillis);
+        }
+
+        for (PieceAnimationState state : animationStates.values()) {
+
+            if (state.getState() == AnimationState.SHORT_REST &&
+                    currentTimeMillis - state.getStateStartTime() >= 500) {
+
+                state.setState(AnimationState.IDLE, currentTimeMillis);
+            }
+
+            else if (state.getState() == AnimationState.IDLE &&
+                    currentTimeMillis - state.getStateStartTime() >= 5000) {
+
+                state.setState(AnimationState.LONG_REST, currentTimeMillis);
+                System.out.println("LONG_REST");
             }
         }
 
@@ -183,5 +228,31 @@ public class RealTimeArbiter {
 
     public List<ActiveMotion> getActiveMotions() {
         return activeMotions;
+    }
+
+    private PieceAnimationState getAnimationState(Piece piece) {
+
+        return animationStates.computeIfAbsent(
+                piece,
+                p -> new PieceAnimationState()
+        );
+    }
+
+    public AnimationState getAnimationStateOf(Piece piece) {
+        return getAnimationState(piece).getState();
+    }
+
+    public long getAnimationStateStartTime(Piece piece) {
+        return getAnimationState(piece).getStateStartTime();
+    }
+
+    public PieceVisualState getVisualState(Piece piece) {
+
+        PieceAnimationState state = getAnimationState(piece);
+
+        return new PieceVisualState(
+                state.getState(),
+                state.getStateStartTime()
+        );
     }
 }

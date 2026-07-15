@@ -2,6 +2,8 @@ package org.example.input;
 
 import org.example.model.Position;
 import org.example.model.CoordinateMapper;
+
+import javax.swing.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
@@ -29,10 +31,16 @@ public class InteractionHandler implements MouseListener {
         Position pos = CoordinateMapper.toPosition(e.getX(), e.getY(),
                 e.getComponent().getWidth(), e.getComponent().getHeight());
 
-        // בדיקה שהמיקום שהתקבל תקין לפני המשך העיבוד
-        if (pos != null) {
-            handleClick(pos);
+        if (pos == null) {
+            return;
         }
+        if (SwingUtilities.isRightMouseButton(e)) {
+            handleJump(pos);
+            return;
+        }
+        // בדיקה שהמיקום שהתקבל תקין לפני המשך העיבוד
+
+        handleClick(pos);
     }
 
     public void handleClick(Position clickedPos) {

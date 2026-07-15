@@ -9,13 +9,16 @@ import org.example.realtime.RealTimeArbiter;
 import org.example.rules.RuleEngine; // מנוע החוקים הפשוטים שנבנה מייד
 import org.example.input.InteractionHandler;
 import org.example.view.GameSnapshot;
+import org.example.view.PieceVisualState;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class GameEngine implements GameEngineActions {
     private final Board board;
     private final RealTimeArbiter arbiter;
     private final RuleEngine ruleEngine;
     private final GameState gameState;
-
 
     public GameEngine(Board board, RealTimeArbiter arbiter, RuleEngine ruleEngine, GameState gameState) {
         this.board = board;
@@ -130,12 +133,35 @@ public class GameEngine implements GameEngineActions {
 
     @Override
     public GameSnapshot snapshot(Position selectedPosition) {
-      /*  System.out.println("DEBUG: Snapshot taking board with piece at 2,0: " + (board.getPiece(new Position(2,0)) != null));*/
+        /*  System.out.println("DEBUG: Snapshot taking board with piece at 2,0: " + (board.getPiece(new Position(2,0)) != null));*/
+        Map<Piece, PieceVisualState> visualStates = new HashMap<>();
+
+        for (int r = 0; r < board.getHeight(); r++) {
+
+            for (int c = 0; c < board.getWidth(); c++) {
+
+                Piece piece = board.getPiece(new Position(r,c));
+
+                if(piece != null){
+
+                    visualStates.put(
+                            piece,
+                            arbiter.getVisualState(piece)
+                    );
+
+                }
+
+            }
+
+        }
         return new GameSnapshot(
                 this.board,
                 this.arbiter.getActiveMotions(),
-                selectedPosition, // עובר כפרמטר
-                this.arbiter.getCurrentTimeMillis()
-        );
+                selectedPosition,
+                this.arbiter.getCurrentTimeMillis(),
+                visualStates
+                );
     }
+
+
 }

@@ -23,17 +23,16 @@ public class ImgRenderer {
         System.out.println("loadPieceAnimations finished!");
     }
 
-    private static class AnimationState {
+    private static class LoadedAnimation{
         AnimationConfig config;
         List<BufferedImage> frames = new ArrayList<>();
     }
 
 
 
-    private final Map<String, Map<String, AnimationState>> pieceAnimations = new HashMap<>();
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final Map<String, Map<String, LoadedAnimation>> pieceAnimations = new HashMap<>();    private final ObjectMapper objectMapper = new ObjectMapper();
 
-    //private final Map<String, Img> pieceImages = new HashMap<>();
+//private final Map<String, Img> pieceImages = new HashMap<>();
 
 
 
@@ -53,7 +52,7 @@ public class ImgRenderer {
                         // טעינת הקונפיג
                         InputStream configStream = getClass().getResourceAsStream(basePath + "/config.json");
                         if (configStream != null) {
-                            AnimationState animState = new AnimationState();
+                            LoadedAnimation animState = new LoadedAnimation();
                             animState.config = objectMapper.readValue(configStream, AnimationConfig.class);
 
                             // טעינת הפריימים מהתיקיה
@@ -61,9 +60,17 @@ public class ImgRenderer {
                                 InputStream imgStream = getClass().getResourceAsStream(basePath + "/sprites/" + i + ".png");
                                 if (imgStream != null) {
                                     animState.frames.add(ImageIO.read(imgStream));
-                                } else break;
+                                    System.out.println("Loaded: " + basePath);
+                                } else {
+
+
+                                        System.out.println("NOT FOUND: " + basePath);
+
+
+                                    break;}
                             }
                             pieceAnimations.get(pieceKey).put(state, animState);
+
                         }
                     } catch (Exception e) {
                         System.err.println("Failed to load state " + state + " for " + pieceKey);
@@ -88,8 +95,8 @@ public class ImgRenderer {
 
         drawBoard(canvas, board);
 
-        drawPieces(canvas, board, snapshot.getActiveMotions(),snapshot.getCurrentTimeMillis());
-        drawAnimations(canvas, snapshot.getActiveMotions(), snapshot.getCurrentTimeMillis());
+        drawPieces(canvas, board, snapshot.getActiveMotions(),snapshot.getCurrentTimeMillis(),snapshot);
+        drawAnimations(canvas, snapshot.getActiveMotions(), snapshot.getCurrentTimeMillis(),snapshot);
 
         if (snapshot.getSelectedPosition() != null) {
             drawSelection(canvas, snapshot.getSelectedPosition());
@@ -98,11 +105,13 @@ public class ImgRenderer {
     }
 
     private void drawBoard(Img canvas, Board board) {
-//        System.out.println("Drawing board...");
+
+
+// System.out.println("Drawing board...");
         for (int r = 0; r < board.getHeight(); r++) {
             for (int c = 0; c < board.getWidth(); c++) {
                 Color color = ((r + c) % 2 == 0) ? Color.WHITE : Color.GRAY;
-                // ציור מלבן ב-canvas (דורש תמיכה ב-Graphics2D בתוך Img)
+// ציור מלבן ב-canvas (דורש תמיכה ב-Graphics2D בתוך Img)
                 Graphics2D g = canvas.get().createGraphics();
                 g.setColor(color);
                 g.fillRect(c * CELL_SIZE, r * CELL_SIZE, CELL_SIZE, CELL_SIZE);
@@ -111,19 +120,27 @@ public class ImgRenderer {
         }
     }
 
-    private void drawPieces(Img canvas, Board board, List<ActiveMotion> motions, long currentTime) {
+    private void drawPieces(Img canvas, Board board, List<ActiveMotion> motions, long currentTime, GameSnapshot snapshot) {
         for (int r = 0; r < board.getHeight(); r++) {
             for (int c = 0; c < board.getWidth(); c++) {
                 Piece p = board.getPiece(new Position(r, c));
                 // דלג אם הכלי נמצא בתנועה כדי לא לצייר אותו פעמיים
                 if (p != null && !isPieceMoving(p, motions)) {
-                    drawPiece(canvas, p, c * CELL_SIZE, r * CELL_SIZE, "idle", currentTime);
+                    drawPiece(
+                            canvas,
+                            p,
+                            c * CELL_SIZE,
+                            r * CELL_SIZE,
+                            null,               // אין ActiveMotion
+                            currentTime,
+                            snapshot
+                    );
                 }
             }
         }
     }
 
-    private void drawAnimations(Img canvas, List<ActiveMotion> motions, long currentTime) {
+    private void drawAnimations(Img canvas, List<ActiveMotion> motions, long currentTime,GameSnapshot snapshot) {
         for (ActiveMotion m : motions) {
             if (m.isCancelled()) continue;
 
@@ -137,28 +154,120 @@ public class ImgRenderer {
 
             int currentX = startX + (int)((endX - startX) * progress);
             int currentY = startY + (int)((endY - startY) * progress);
-            drawPiece(canvas, m.getPiece(), currentX, currentY, m.getCurrentState(currentTime), currentTime);
+            drawPiece(
+                    canvas,
+                    m.getPiece(),
+                    currentX,
+                    currentY,
+                    m,
+                    currentTime,
+                    snapshot
+            );
 
         }
     }
 
-    private void drawPiece(Img canvas, Piece p, int x, int y, String state, long currentTime) {
+    private void drawPiece(Img canvas, Piece p, int x, int y, ActiveMotion motion, long currentTime, GameSnapshot snapshot) {
+        PieceVisualState visual =
+                snapshot.getVisualStates().get(p);
+
+        if (visual == null) {
+            return;
+        }
+        AnimationState state;
+
+        long animationTime;
+
+        state = visual.getState();
+
+        Graphics2D g = canvas.get().createGraphics();
+        g.setColor(Color.RED);
+        g.drawString(state.name(), x + 5, y + 15);
+        g.dispose();
+        if (motion != null) {
+
+
+            animationTime =
+                    currentTime - motion.getStartTimeMillis();
+
+        } else {
+
+            state = visual.getState();
+            animationTime =
+                    currentTime - visual.getStateStartTime();
+        }
+
+        String stateName;
+
+        switch (state) {
+
+            case IDLE:
+                stateName = "idle";
+                break;
+
+            case MOVE:
+                stateName = "move";
+                break;
+
+            case JUMP:
+                stateName = "jump";
+                break;
+
+            case SHORT_REST:
+                stateName = "short_rest";
+                break;
+
+            case LONG_REST:
+                stateName = "long_rest";
+                break;
+
+            default:
+                stateName = "idle";
+        }
+
+
         String key = "" + p.getColor().getSymbol() + p.getType().getSymbol();
-        Map<String, AnimationState> states = pieceAnimations.get(key);
 
-        if (states != null && states.containsKey(state)) {
-            AnimationState anim = states.get(state);
-            if (!anim.frames.isEmpty()) {
-                // חישוב אינדקס הפריים לפי FPS
-                int frameIndex = (int) (((currentTime - 0) / 1000.0) * anim.config.graphics.frames_per_sec) % anim.frames.size();
-                BufferedImage frame = anim.frames.get(frameIndex);
+        Map<String, LoadedAnimation> states = pieceAnimations.get(key);
 
-                Graphics2D g = canvas.get().createGraphics();
-                g.drawImage(frame, x, y, CELL_SIZE, CELL_SIZE, null);
-                g.dispose();
-            }
+        if (states == null)
+            return;
+
+        LoadedAnimation anim = states.get(stateName);
+        System.out.println(
+                "state=" + stateName +
+                        " anim=" + (anim != null) +
+                        " frames=" + (anim == null ? 0 : anim.frames.size())
+        );
+        System.out.println(
+                "state=" + stateName +
+                        " loaded=" + (anim != null)
+        );
+
+        if (anim == null || anim.frames.isEmpty())
+            return;
+
+
+
+        int frameIndex =
+                (int) ((animationTime / 1000.0)
+                        * anim.config.graphics.frames_per_sec);
+
+
+        if (anim.config.graphics.is_loop) {
+            frameIndex %= anim.frames.size();
+        } else {
+            frameIndex = Math.min(frameIndex, anim.frames.size() - 1);
         }
+        BufferedImage frame = anim.frames.get(frameIndex);
+
+
+        Graphics2D dd = canvas.get().createGraphics();
+        dd.drawImage(frame, x, y, CELL_SIZE, CELL_SIZE, null);
+        dd.dispose();
     }
+
+
 
     private boolean isPieceMoving(Piece p, List<ActiveMotion> motions) {
         return motions.stream().anyMatch(m -> m.getPiece().equals(p) && !m.isCancelled());
@@ -171,4 +280,6 @@ public class ImgRenderer {
         g.drawRect(pos.getCol() * CELL_SIZE, pos.getRow() * CELL_SIZE, CELL_SIZE, CELL_SIZE);
         g.dispose();
     }
+
+
 }

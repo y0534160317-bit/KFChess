@@ -70,11 +70,11 @@ public class ImgRenderer {
                                 InputStream imgStream = getClass().getResourceAsStream(basePath + "/sprites/" + i + ".png");
                                 if (imgStream != null) {
                                     animState.frames.add(ImageIO.read(imgStream));
-                                    System.out.println("Loaded: " + basePath);
+//                                    System.out.println("Loaded: " + basePath);
                                 } else {
 
 
-                                        System.out.println("NOT FOUND: " + basePath);
+//                                        System.out.println("NOT FOUND: " + basePath);
 
 
                                     break;}
@@ -93,8 +93,8 @@ public class ImgRenderer {
         String path = "pieces/" + pieceKey + "/states/" + testState + "/config.json";
 
         java.net.URL resource = getClass().getResource(path);
-        System.out.println("Checking path: " + path);
-        System.out.println("Resource found: " + (resource != null));
+//        System.out.println("Checking path: " + path);
+//        System.out.println("Resource found: " + (resource != null));
     }
 
     public Img render(GameSnapshot snapshot) {
@@ -299,15 +299,15 @@ public class ImgRenderer {
             return;
 
         LoadedAnimation anim = states.get(stateName);
-        System.out.println(
-                "state=" + stateName +
-                        " anim=" + (anim != null) +
-                        " frames=" + (anim == null ? 0 : anim.frames.size())
-        );
-        System.out.println(
-                "state=" + stateName +
-                        " loaded=" + (anim != null)
-        );
+//        System.out.println(
+//                "state=" + stateName +
+//                        " anim=" + (anim != null) +
+//                        " frames=" + (anim == null ? 0 : anim.frames.size())
+//        );
+//        System.out.println(
+//                "state=" + stateName +
+//                        " loaded=" + (anim != null)
+//        );
 
         if (anim == null || anim.frames.isEmpty())
             return;

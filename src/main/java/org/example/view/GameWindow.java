@@ -2,6 +2,7 @@ package org.example.view;
 
 import org.example.core.GameEngine;
 import org.example.input.InteractionHandler;
+import org.example.model.Piece;
 import org.example.model.Position;
 import org.example.view.panels.FooterPanel;
 import org.example.view.panels.HeaderPanel;
@@ -44,8 +45,14 @@ public final class GameWindow {
         HeaderPanel headerPanel = new HeaderPanel();
         FooterPanel footerPanel = new FooterPanel();
 
-        MovesPanel leftMovesPanel = new MovesPanel();
-        MovesPanel rightMovesPanel = new MovesPanel();
+        MovesPanel leftMovesPanel =
+                new MovesPanel(Piece.Color.BLACK);
+
+        MovesPanel rightMovesPanel =
+                new MovesPanel(Piece.Color.WHITE);
+
+        engine.addMoveObserver(leftMovesPanel);
+        engine.addMoveObserver(rightMovesPanel);
 
         boardPanel = new BoardPanel();
 

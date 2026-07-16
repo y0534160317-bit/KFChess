@@ -7,11 +7,15 @@ import org.example.model.Position;
 import org.example.model.GameState;
 import org.example.realtime.RealTimeArbiter;
 import org.example.rules.RuleEngine; // מנוע החוקים הפשוטים שנבנה מייד
-import org.example.input.InteractionHandler;
 import org.example.view.GameSnapshot;
 import org.example.view.PieceVisualState;
+import org.example.events.MoveEvent;
+import org.example.events.MoveObserver;
+import org.example.realtime.CompletedMove;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class GameEngine implements GameEngineActions {
@@ -19,6 +23,7 @@ public class GameEngine implements GameEngineActions {
     private final RealTimeArbiter arbiter;
     private final RuleEngine ruleEngine;
     private final GameState gameState;
+    private final List<MoveObserver> moveObservers = new ArrayList<>();
 
     public GameEngine(Board board, RealTimeArbiter arbiter, RuleEngine ruleEngine, GameState gameState) {
         this.board = board;
@@ -26,6 +31,29 @@ public class GameEngine implements GameEngineActions {
         this.ruleEngine = ruleEngine;
         this.gameState = gameState;
     }
+
+    public void addMoveObserver(MoveObserver observer) {
+        moveObservers.add(observer);
+    }
+
+    public void removeMoveObserver(MoveObserver observer) {
+        moveObservers.remove(observer);
+    }
+
+    private void notifyMoveObservers(CompletedMove move) {
+
+        MoveEvent event =
+                new MoveEvent(
+                        move.getPiece(),
+                        move.getSource(),
+                        move.getDestination()
+                );
+
+        for (MoveObserver observer : moveObservers) {
+            observer.onMoveCompleted(event);
+        }
+    }
+
 
     public Board getBoard() {
         return this.board;
@@ -126,9 +154,16 @@ public class GameEngine implements GameEngineActions {
         arbiter.startJump(piece, position);
     }
 
+
     @Override
     public void advanceTime(long milliseconds) {
-        arbiter.advanceTime(milliseconds);
+
+        List<CompletedMove> completedMoves =
+                arbiter.advanceTime(milliseconds);
+
+        for (CompletedMove move : completedMoves) {
+            notifyMoveObservers(move);
+        }
     }
 
     @Override

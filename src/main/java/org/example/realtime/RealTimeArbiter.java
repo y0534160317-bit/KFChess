@@ -80,8 +80,12 @@ public class RealTimeArbiter {
         ));
     }
 
-    public void advanceTime(long milliseconds) {
-        if (milliseconds <= 0) return;
+    public List<CompletedMove> advanceTime(long milliseconds) {
+        if (milliseconds <= 0) {
+            return new ArrayList<>();
+        }
+
+        List<CompletedMove> completedMoves = new ArrayList<>();
         this.currentTimeMillis += milliseconds;
 
         resolveAirCollisions();
@@ -122,6 +126,13 @@ public class RealTimeArbiter {
             // תנועה לוגית נקייה במקום שתי קריאות setPiece גולמיות
             if (currentAtSource != null && currentAtSource.equals(movingPiece)) {
                 board.executeMove(src, dest);
+                completedMoves.add(
+                        new CompletedMove(
+                                movingPiece,
+                                src,
+                                dest
+                        )
+                );
             }
 
             // הכתרה מבוקרת באמצעות promotePawn
@@ -152,6 +163,8 @@ public class RealTimeArbiter {
         }
 
         activeMotions.removeIf(motion -> motion.isCancelled() || motion.isComplete(currentTimeMillis));
+        return completedMoves;
+
     }
 
     private void resolveAirCollisions() {

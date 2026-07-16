@@ -47,8 +47,8 @@ public class GameEngine implements GameEngineActions {
 
     @Override
     public boolean isPieceReady(Piece piece) {
-        // הכלי מוכן אם הוא לא נמצא כרגע בתנועה באוויר
-        return !arbiter.isPieceInMotion(piece);
+        return !arbiter.isPieceInMotion(piece)
+                && !arbiter.isPieceResting(piece);
     }
 
     @Override

@@ -133,7 +133,7 @@ public class RealTimeArbiter {
             }
 
             getAnimationState(movingPiece)
-                    .setState(AnimationState.SHORT_REST, currentTimeMillis);
+                    .setState(AnimationState.LONG_REST, currentTimeMillis);
         }
 
         for (PieceAnimationState state : animationStates.values()) {
@@ -144,11 +144,10 @@ public class RealTimeArbiter {
                 state.setState(AnimationState.IDLE, currentTimeMillis);
             }
 
-            else if (state.getState() == AnimationState.IDLE &&
-                    currentTimeMillis - state.getStateStartTime() >= 5000) {
+            else if (state.getState() == AnimationState.LONG_REST &&
+                    currentTimeMillis - state.getStateStartTime() >= 1000) {
 
-                state.setState(AnimationState.LONG_REST, currentTimeMillis);
-                System.out.println("LONG_REST");
+                state.setState(AnimationState.IDLE, currentTimeMillis);
             }
         }
 
@@ -254,5 +253,16 @@ public class RealTimeArbiter {
                 state.getState(),
                 state.getStateStartTime()
         );
+    }
+
+    public boolean isPieceResting(Piece piece) {
+        PieceAnimationState state = animationStates.get(piece);
+
+        if (state == null) {
+            return false;
+        }
+
+        return state.getState() == AnimationState.SHORT_REST
+                || state.getState() == AnimationState.LONG_REST;
     }
 }

@@ -66,4 +66,18 @@ public class Board {
         grid[pos.getRow()][pos.getCol()] = new Piece(color, Piece.Type.QUEEN);
     }
 
+    public Position findPiece(Piece piece) {
+
+        for (int row = 0; row < height; row++) {
+            for (int col = 0; col < width; col++) {
+
+                if (piece.equals(grid[row][col])) {
+                    return new Position(row, col);
+                }
+            }
+        }
+
+        return null;
+    }
+
 }

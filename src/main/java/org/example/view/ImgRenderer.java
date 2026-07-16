@@ -16,10 +16,20 @@ import java.util.Map;
 
 public class ImgRenderer {
     private static final int CELL_SIZE = 100;
+    private BufferedImage boardImage ;
 
     public ImgRenderer() {
         System.out.println("ImgRenderer Constructor started!");
         loadPieceAnimations();
+
+        try {
+            boardImage = ImageIO.read(
+                    getClass().getResourceAsStream("/board.png")
+            );
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to load board image", e);
+        }
+
         System.out.println("loadPieceAnimations finished!");
     }
 
@@ -95,6 +105,8 @@ public class ImgRenderer {
 
         drawBoard(canvas, board);
 
+        drawCooldowns(canvas, snapshot);
+
         drawPieces(canvas, board, snapshot.getActiveMotions(),snapshot.getCurrentTimeMillis(),snapshot);
         drawAnimations(canvas, snapshot.getActiveMotions(), snapshot.getCurrentTimeMillis(),snapshot);
 
@@ -106,18 +118,71 @@ public class ImgRenderer {
 
     private void drawBoard(Img canvas, Board board) {
 
+        Graphics2D g = canvas.get().createGraphics();
 
-// System.out.println("Drawing board...");
-        for (int r = 0; r < board.getHeight(); r++) {
-            for (int c = 0; c < board.getWidth(); c++) {
-                Color color = ((r + c) % 2 == 0) ? Color.WHITE : Color.GRAY;
-// ציור מלבן ב-canvas (דורש תמיכה ב-Graphics2D בתוך Img)
-                Graphics2D g = canvas.get().createGraphics();
-                g.setColor(color);
-                g.fillRect(c * CELL_SIZE, r * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-                g.dispose();
+        g.drawImage(
+                boardImage,
+                0,
+                0,
+                board.getWidth() * CELL_SIZE,
+                board.getHeight() * CELL_SIZE,
+                null
+        );
+
+        g.dispose();
+    }
+
+    private void drawCooldowns(
+            Img canvas,
+            GameSnapshot snapshot) {
+
+        Graphics2D g = canvas.get().createGraphics();
+
+        for (Map.Entry<Piece, PieceVisualState> entry :
+                snapshot.getVisualStates().entrySet()) {
+
+            Piece piece = entry.getKey();
+            PieceVisualState visual = entry.getValue();
+
+            AnimationState state = visual.getState();
+
+            if (state != AnimationState.SHORT_REST &&
+                    state != AnimationState.LONG_REST) {
+                continue;
             }
+
+            Position pos = snapshot.getBoard().findPiece(piece);
+
+            if (pos == null) {
+                continue;
+            }
+
+            long duration =
+                    (state == AnimationState.SHORT_REST)
+                            ? 500
+                            : 1000;   // זמן ה-LONG_REST
+
+            long elapsed =
+                    snapshot.getCurrentTimeMillis()
+                            - visual.getStateStartTime();
+
+            double progress =
+                    Math.min(1.0, elapsed / (double) duration);
+
+            int height =
+                    (int)(CELL_SIZE * (1.0 - progress));
+
+            g.setColor(new Color(250, 210, 0, 112));
+
+            g.fillRect(
+                    pos.getCol() * CELL_SIZE,
+                    pos.getRow() * CELL_SIZE + (CELL_SIZE - height),
+                    CELL_SIZE,
+                    height
+            );
         }
+
+        g.dispose();
     }
 
     private void drawPieces(Img canvas, Board board, List<ActiveMotion> motions, long currentTime, GameSnapshot snapshot) {
@@ -267,7 +332,44 @@ public class ImgRenderer {
         dd.dispose();
     }
 
+    private void drawCooldownOverlay(
+            Img canvas,
+            int x,
+            int y,
+            PieceVisualState visual,
+            long currentTime) {
 
+        AnimationState state = visual.getState();
+
+        if (state != AnimationState.SHORT_REST &&
+                state != AnimationState.LONG_REST) {
+            return;
+        }
+
+        long duration =
+                state == AnimationState.SHORT_REST
+                        ? 500
+                        : 1000;   // שים כאן את זמן ה-LONG_REST אצלכם
+
+        long elapsed = currentTime - visual.getStateStartTime();
+
+        double progress = Math.min(1.0, elapsed / (double) duration);
+
+        int height = (int)(CELL_SIZE * (1.0 - progress));
+
+        Graphics2D g = canvas.get().createGraphics();
+
+        g.setColor(new Color(255, 215, 0, 110));
+
+        g.fillRect(
+                x,
+                y,
+                CELL_SIZE,
+                height
+        );
+
+        g.dispose();
+    }
 
     private boolean isPieceMoving(Piece p, List<ActiveMotion> motions) {
         return motions.stream().anyMatch(m -> m.getPiece().equals(p) && !m.isCancelled());

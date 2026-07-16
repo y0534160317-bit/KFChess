@@ -20,6 +20,8 @@ public class RealTimeArbiter {
     private final Board board;
     private final CollisionResolver collisionResolver;
     private final List<ActiveMotion> activeMotions;
+    private final MotionConflictResolver conflictResolver =
+            new MotionConflictResolver();
     private long currentTimeMillis;
     private long nextSequence;
     private boolean kingCaptured;
@@ -88,8 +90,10 @@ public class RealTimeArbiter {
         List<CompletedMove> completedMoves = new ArrayList<>();
         this.currentTimeMillis += milliseconds;
 
-        resolveAirCollisions();
-        resolveAirCapturesByJumps();
+        conflictResolver.resolve(
+                activeMotions,
+                board,
+                currentTimeMillis);
 
         List<ActiveMotion> completedMotions = new ArrayList<>();
         for (ActiveMotion motion : activeMotions) {
@@ -167,59 +171,9 @@ public class RealTimeArbiter {
 
     }
 
-    private void resolveAirCollisions() {
-        for (int i = 0; i < activeMotions.size(); i++) {
-            ActiveMotion first = activeMotions.get(i);
-            if (first.isCancelled() || first.isJump()) continue;
 
-            for (int j = i + 1; j < activeMotions.size(); j++) {
-                ActiveMotion second = activeMotions.get(j);
-                if (second.isCancelled() || second.isJump()) continue;
 
-                if (first.getPiece().getColor() == second.getPiece().getColor()) continue;
 
-                boolean sameDestination = first.getDestination().equals(second.getDestination());
-
-                boolean headOnCollision = first.getSource().equals(second.getDestination())
-                        && first.getDestination().equals(second.getSource());
-
-                if (sameDestination || headOnCollision) {
-                    ActiveMotion winner = collisionResolver.determineWinner(first, second);
-                    ActiveMotion loser = (winner == first) ? second : first;
-
-                    loser.cancel();
-
-                    // הסרת הכלי המפסיד מהלוח בצורה אנקפסולרית
-                    board.removePiece(loser.getSource());
-                }
-            }
-        }
-    }
-
-    private void resolveAirCapturesByJumps() {
-        ActiveMotion activeJump = null;
-        for (ActiveMotion motion : activeMotions) {
-            if (motion.isJump() && !motion.isCancelled()) {
-                activeJump = motion;
-                break;
-            }
-        }
-
-        if (activeJump == null) return;
-
-        for (ActiveMotion motion : activeMotions) {
-            if (!motion.isJump() && !motion.isCancelled()
-                    && motion.getDestination().equals(activeJump.getDestination())
-                    && motion.getPiece().getColor() != activeJump.getPiece().getColor()) {
-
-                if (motion.getStartTimeMillis() == activeJump.getStartTimeMillis()) {
-                    motion.cancel();
-                    // תיקון המשתנה: שימוש ב-motion.getSource() במקום loser שלא היה קיים בפונקציה זו
-                    board.removePiece(motion.getSource());
-                }
-            }
-        }
-    }
 
     public boolean isPieceInMotion(Piece piece) {
         for (ActiveMotion motion : activeMotions) {

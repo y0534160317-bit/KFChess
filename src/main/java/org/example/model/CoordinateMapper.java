@@ -3,14 +3,30 @@ package org.example.model;
 public class CoordinateMapper {
 
     public static final int CELL_SIZE = 100;
+    public static Position toPosition(
+            int x, int y, BoardGeometry geometry) {
 
-    /**
-     * ממפה קואורדינטות מסך (פיקסלים) לאובייקט Position (שורה ועמודה בלוח)
-     */
-    public static Position toPosition(int x, int y, int componentWidth, int componentHeight) {
-        // נניח שהלוח הוא תמיד 8x8
-        int col = (x * 8) / componentWidth;
-        int row = (y * 8) / componentHeight;
+
+        if (geometry == null) {
+            return null;
+        }
+
+        int boardX = geometry.getX();
+        int boardY = geometry.getY();
+        int boardSize = geometry.getSize();
+        // האם הלחיצה בכלל בתוך הלוח?
+        if (x < boardX || x >= boardX + boardSize ||
+                y < boardY || y >= boardY + boardSize) {
+            return null;
+        }
+
+        // מעבירים את נקודת ההתחלה של הלוח ל-(0,0)
+        int localX = x - boardX;
+        int localY = y - boardY;
+
+        int col = (localX * 8) / boardSize;
+        int row = (localY * 8) / boardSize;
+
         return new Position(row, col);
     }
 }

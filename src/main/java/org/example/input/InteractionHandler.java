@@ -1,5 +1,6 @@
 package org.example.input;
 
+import org.example.model.BoardGeometry;
 import org.example.model.Position;
 import org.example.model.CoordinateMapper;
 
@@ -7,46 +8,64 @@ import javax.swing.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
+
 public class InteractionHandler implements MouseListener {
+
+    private static final long CLICK_THRESHOLD = 200;
+
     private final GameEngineActions actions;
     private Position selectedPosition;
+    private long lastClickTime;
+
+    // GameWindow מזריק ספק של גיאומטריית הלוח.
+    // כך אין תלות ב-BoardPanel ואין צורך לעדכן את ה-Controller בכל ציור.
+    private BoardGeometry boardGeometry;
 
     public InteractionHandler(GameEngineActions actions) {
         this.actions = actions;
-        this.selectedPosition = null;
     }
 
-    private long lastClickTime = 0;
-    private static final long CLICK_THRESHOLD = 200; // מילי-שניות למניעת לחיצה כפולה
+    public void setBoardGeometry(BoardGeometry boardGeometry) {
+        this.boardGeometry = boardGeometry;
+    }
+
+
 
     @Override
     public void mousePressed(MouseEvent e) {
-        // הגנה: סינון אירועים שקורים מהר מדי אחד אחרי השני
+
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastClickTime < CLICK_THRESHOLD) {
             return;
         }
         lastClickTime = currentTime;
 
-        Position pos = CoordinateMapper.toPosition(e.getX(), e.getY(),
-                e.getComponent().getWidth(), e.getComponent().getHeight());
+        if (boardGeometry == null) {
+            return;
+        }
+
+        Position pos = CoordinateMapper.toPosition(
+                e.getX(),
+                e.getY(),
+                boardGeometry        );
 
         if (pos == null) {
             return;
         }
+
         if (SwingUtilities.isRightMouseButton(e)) {
             handleJump(pos);
             return;
         }
-        // בדיקה שהמיקום שהתקבל תקין לפני המשך העיבוד
 
         handleClick(pos);
     }
 
     public void handleClick(Position clickedPos) {
-        if (clickedPos == null || actions.isGameOver()) return;
 
-        System.out.println("DEBUG: Executing click at -> Row: " + clickedPos.getRow() + ", Col: " + clickedPos.getCol());
+        if (clickedPos == null || actions.isGameOver()) {
+            return;
+        }
 
         if (!actions.isPositionWithinBounds(clickedPos)) {
             clearSelection();
@@ -63,11 +82,7 @@ public class InteractionHandler implements MouseListener {
             return;
         }
 
-        // שמירת ה-Source וביצוע פעולה רק אם יש בחירה תקינה
         Position source = selectedPosition;
-        System.out.println("DEBUG: Attempting move from " + source.getRow() + "," + source.getCol() +
-                " to " + clickedPos.getRow() + "," + clickedPos.getCol());
-        // איפוס הבחירה חייב לקרות לפני שליחת הפקודה למנוע
         clearSelection();
 
         if (source.equals(clickedPos)) {
@@ -77,10 +92,15 @@ public class InteractionHandler implements MouseListener {
         actions.requestMove(source, clickedPos);
     }
 
-    // לוגיקת הקפיצה
     public void handleJump(Position pos) {
-        if (actions.isGameOver()) return;
-        if (!actions.isPositionWithinBounds(pos)) return;
+
+        if (actions.isGameOver()) {
+            return;
+        }
+
+        if (!actions.isPositionWithinBounds(pos)) {
+            return;
+        }
 
         clearSelection();
         actions.requestJump(pos);
@@ -92,12 +112,27 @@ public class InteractionHandler implements MouseListener {
         }
     }
 
-    public void clearSelection() { this.selectedPosition = null; }
-    public Position getSelectedPosition() { return selectedPosition; }
+    public void clearSelection() {
+        selectedPosition = null;
+    }
 
-    // מתודות ריקות לממשק
-    public void mouseReleased(MouseEvent e) {}
-    public void mouseEntered(MouseEvent e) {}
-    public void mouseExited(MouseEvent e) {}
-    public void mouseClicked(MouseEvent e) {}
+    public Position getSelectedPosition() {
+        return selectedPosition;
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent e) {
+    }
+
+    @Override
+    public void mouseExited(MouseEvent e) {
+    }
+
+    @Override
+    public void mouseClicked(MouseEvent e) {
+    }
 }

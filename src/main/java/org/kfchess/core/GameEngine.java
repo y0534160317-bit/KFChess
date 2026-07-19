@@ -128,7 +128,7 @@ public class GameEngine implements GameEngineActions {
 
         if (piece == null) return;
 
-        BoardView logicalBoard =
+        LogicalBoardView logicalBoard =
                 new LogicalBoardView(
                         board,
                         arbiter.getActiveMotions());
@@ -137,6 +137,9 @@ public class GameEngine implements GameEngineActions {
         // וידוא חוקיות המהלך במנוע החוקים הטהור לפני תחילת התנועה בזמן אמת
             System.out.println("DEBUG: Move rejected by engine!");
             return; // מהלך לא חוקי (למשל: כלי חבר, או מהלך לא תואם לסוג הכלי)
+        }
+        if (logicalBoard.isReserved(destination, piece.getColor())) {
+            return;
         }
 
         // שליחת הפקודה לארביטר שיתחיל את התנועה על ציר הזמן

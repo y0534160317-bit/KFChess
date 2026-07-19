@@ -67,4 +67,34 @@ public class LogicalBoardView implements BoardView {
 
         return null;
     }
+
+    /**
+     * מחזיר true אם קיימת תנועה פעילה של כלי מהצבע הנתון
+     * שהיעד שלה הוא המשבצת המבוקשת.
+     */
+    public boolean isReserved(Position position, Piece.Color color) {
+
+        for (ActiveMotion motion : activeMotions) {
+
+            // מתעלמים מתנועות שכבר בוטלו
+            if (motion.isCancelled()) {
+                continue;
+            }
+
+            // בודקים האם התנועה מיועדת למשבצת הזו
+            if (!motion.getDestination().equals(position)) {
+                continue;
+            }
+
+            // בודקים שהכלי הוא מאותו צבע
+            if (motion.getPiece().getColor() != color) {
+                continue;
+            }
+
+            // מצאנו תנועה פעילה של כלי מאותו צבע לאותו יעד
+            return true;
+        }
+
+        return false;
+    }
 }

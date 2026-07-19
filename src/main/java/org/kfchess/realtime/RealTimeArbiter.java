@@ -26,6 +26,7 @@ public class RealTimeArbiter {
     private long nextSequence;
     private boolean kingCaptured;
     private final Map<Piece, PieceAnimationState> animationStates = new HashMap<>();
+    private Piece.Color winner;
 
     public RealTimeArbiter(Board board, CollisionResolver collisionResolver) {
         this.board = board;
@@ -127,6 +128,8 @@ public class RealTimeArbiter {
             if (target != null && target.getColor() != movingPiece.getColor()) {
                 if (target.getType() == Piece.Type.KING) {
                     kingCaptured = true;
+                    winner = movingPiece.getColor();
+
                 }
             }
             // תנועה לוגית נקייה במקום שתי קריאות setPiece גולמיות
@@ -223,6 +226,11 @@ public class RealTimeArbiter {
                 state.getState(),
                 state.getStateStartTime()
         );
+    }
+
+
+    public Piece.Color getWinner() {
+        return winner;
     }
 
     public boolean isPieceResting(Piece piece) {

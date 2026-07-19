@@ -205,14 +205,17 @@ public class GameEngine implements GameEngineActions {
             }
 
         }
+
         return new GameSnapshot(
-                this.board,
-                this.arbiter.getActiveMotions(),
+                board,
+                arbiter.getActiveMotions(),
                 selectedPosition,
-                this.arbiter.getCurrentTimeMillis(),
+                arbiter.getCurrentTimeMillis(),
                 visualStates,
                 scoreManager.getWhiteScore(),
-                scoreManager.getBlackScore()
+                scoreManager.getBlackScore(),
+                arbiter.isKingCaptured(),
+                arbiter.getWinner()
         );
     }
 

@@ -16,6 +16,8 @@ public class GameSnapshot {
     private final Map<Piece, PieceVisualState> visualStates;
     private final int whiteScore;
     private final int blackScore;
+    private final boolean gameOver;
+    private final Piece.Color winner;
 
     public GameSnapshot(
             BoardView board,
@@ -24,7 +26,9 @@ public class GameSnapshot {
             long currentTimeMillis,
             Map<Piece, PieceVisualState> visualStates,
             int whiteScore,
-            int blackScore) {
+            int blackScore,
+            boolean gameOver,
+            Piece.Color winner) {
 
         this.board = board;
         this.activeMotions = activeMotions;
@@ -33,6 +37,8 @@ public class GameSnapshot {
         this.visualStates = visualStates;
         this.whiteScore = whiteScore;
         this.blackScore = blackScore;
+        this.gameOver = gameOver;
+        this.winner = winner;
     }
 
     // Getters למען ה-Renderer
@@ -47,6 +53,13 @@ public class GameSnapshot {
 
     public int getBlackScore() {
         return blackScore;
+    }
+    public boolean isGameOver() {
+        return gameOver;
+    }
+
+    public Piece.Color getWinner() {
+        return winner;
     }
 
 }

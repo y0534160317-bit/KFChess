@@ -113,6 +113,10 @@ public class ImgRenderer {
         if (snapshot.getSelectedPosition() != null) {
             drawSelection(canvas, snapshot.getSelectedPosition());
         }
+
+        if (snapshot.isGameOver()) {
+            drawGameOver(canvas, snapshot);
+        }
         return canvas;
     }
 
@@ -380,5 +384,62 @@ public class ImgRenderer {
         g.dispose();
     }
 
+    private void drawGameOver(
+            Img canvas,
+            GameSnapshot snapshot) {
 
+        Graphics2D g = canvas.get().createGraphics();
+
+        g.setColor(new Color(0,0,0,170));
+
+        g.fillRect(
+                0,
+                0,
+                canvas.get().getWidth(),
+                canvas.get().getHeight()
+        );
+
+        g.setColor(Color.WHITE);
+
+        g.setFont(new Font("Segoe UI", Font.BOLD, 70));
+
+        String title = "GAME OVER";
+
+        FontMetrics fm = g.getFontMetrics();
+
+        int x = (canvas.get().getWidth() - fm.stringWidth(title)) / 2;
+
+        g.drawString(title, x, 260);
+
+        g.setFont(new Font("Segoe UI", Font.BOLD, 34));
+
+        String white =
+                "♔ White Score : " + snapshot.getWhiteScore();
+
+        String black =
+                "♚ Black Score : " + snapshot.getBlackScore();
+
+        fm = g.getFontMetrics();
+
+        x = (canvas.get().getWidth() - fm.stringWidth(white)) / 2;
+        g.drawString(white, x, 405);
+
+        x = (canvas.get().getWidth() - fm.stringWidth(black)) / 2;
+        g.drawString(black, x, 450);
+
+        g.setFont(new Font("Segoe UI", Font.BOLD, 42));
+
+        String winner =
+                snapshot.getWinner() == Piece.Color.WHITE
+                        ? "WHITE WINS"
+                        : "BLACK WINS";
+
+        fm = g.getFontMetrics();
+
+        x = (canvas.get().getWidth() - fm.stringWidth(winner)) / 2;
+
+        g.drawString(winner, x, 340);
+
+        g.dispose();
+    }
 }

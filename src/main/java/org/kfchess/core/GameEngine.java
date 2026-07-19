@@ -45,7 +45,8 @@ public class GameEngine implements GameEngineActions {
                 new MoveEvent(
                         move.getPiece(),
                         move.getSource(),
-                        move.getDestination()
+                        move.getDestination(),
+                        arbiter.getCurrentTimeMillis()
                 );
 
         for (MoveObserver observer : moveObservers) {

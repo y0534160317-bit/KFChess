@@ -1,4 +1,4 @@
-package org.kfchess.view.panels;
+/*)package org.kfchess.view.panels;
 
 import javax.swing.*;
 import java.awt.*;
@@ -21,5 +21,52 @@ public class HeaderPanel extends JPanel {
         scoreLabel.setText("⚫ Score: " + score);
         revalidate();
         repaint();
+    }
+}*/
+
+package org.kfchess.view.panels;
+
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import java.awt.*;
+
+public class HeaderPanel extends JPanel {
+
+    private final JLabel playerLabel;
+    private final JLabel scoreLabel;
+
+    public HeaderPanel() {
+
+        setLayout(new BorderLayout());
+
+        // צבע רקע שמתאים ללוח עץ
+        setBackground(new Color(181,136,99));
+
+        setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(0,0,2,0,new Color(160,120,88)),
+                BorderFactory.createEmptyBorder(12,20,12,20)
+        ));
+
+        playerLabel = new JLabel("♚ Black");
+        playerLabel.setFont(new Font("Segoe UI", Font.BOLD, 22));
+
+        scoreLabel = new JLabel("Score: 0");
+        scoreLabel.setFont(new Font("Segoe UI", Font.BOLD, 22));
+
+        playerLabel.setForeground(new Color(248,242,233));
+        scoreLabel.setForeground(new Color(248,242,233));
+
+        add(playerLabel, BorderLayout.WEST);
+        add(scoreLabel, BorderLayout.EAST);
+
+        setPreferredSize(new Dimension(0, 65));
+    }
+
+    public void setScore(int score) {
+        scoreLabel.setText("Score: " + score);
+    }
+
+    public void setPlayerName(String name) {
+        playerLabel.setText("♚ " + name);
     }
 }

@@ -38,7 +38,7 @@ public final class GameWindow {
             startGameLoop();
         });
     }
-    private void createWindow() {
+    /*private void createWindow() {
         frame = new JFrame("KFChess");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLayout(new BorderLayout());
@@ -74,6 +74,45 @@ public final class GameWindow {
         frame.add(footerPanel, BorderLayout.SOUTH);
 
         frame.setSize(1200, 800);
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
+    }*/
+    private void createWindow() {
+
+        frame = new JFrame("KFChess");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setLayout(new BorderLayout());
+
+        frame.getContentPane().setBackground(new Color(248,242,233));
+
+        headerPanel = new HeaderPanel();
+        footerPanel = new FooterPanel();
+
+        MovesPanel leftMovesPanel = new MovesPanel(Piece.Color.BLACK);
+        MovesPanel rightMovesPanel = new MovesPanel(Piece.Color.WHITE);
+
+        engine.addMoveObserver(leftMovesPanel);
+        engine.addMoveObserver(rightMovesPanel);
+
+        boardPanel = new BoardPanel();
+
+        boardPanel.addMouseListener(controller);
+
+        JPanel centerPanel = new JPanel(new BorderLayout(15,15));
+        centerPanel.setBackground(new Color(248,242,233));
+        centerPanel.setBorder(BorderFactory.createEmptyBorder(15,15,15,15));
+
+        centerPanel.add(leftMovesPanel, BorderLayout.WEST);
+        centerPanel.add(boardPanel, BorderLayout.CENTER);
+        centerPanel.add(rightMovesPanel, BorderLayout.EAST);
+
+        frame.add(headerPanel, BorderLayout.NORTH);
+        frame.add(centerPanel, BorderLayout.CENTER);
+        frame.add(footerPanel, BorderLayout.SOUTH);
+
+        frame.setMinimumSize(new Dimension(1300,900));
+        frame.setSize(1400,900);
+
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
     }

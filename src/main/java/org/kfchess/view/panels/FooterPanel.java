@@ -5,21 +5,39 @@ import java.awt.*;
 
 public class FooterPanel extends JPanel {
 
+    private final JLabel playerLabel;
     private final JLabel scoreLabel;
 
     public FooterPanel() {
 
         setLayout(new BorderLayout());
 
-        scoreLabel = new JLabel("⚪ Score: 0");
-        scoreLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        setBackground(new Color(181, 136, 99));
 
-        add(scoreLabel, BorderLayout.WEST);
+        setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(2, 0, 0, 0, new Color(160, 120, 88)),
+                BorderFactory.createEmptyBorder(12, 20, 12, 20)
+        ));
+
+        playerLabel = new JLabel("♔ White");
+        playerLabel.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        playerLabel.setForeground(new Color(248, 242, 233));
+
+        scoreLabel = new JLabel("Score: 0");
+        scoreLabel.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        scoreLabel.setForeground(new Color(248, 242, 233));
+
+        add(playerLabel, BorderLayout.WEST);
+        add(scoreLabel, BorderLayout.EAST);
+
+        setPreferredSize(new Dimension(0, 65));
     }
 
     public void setScore(int score) {
-        scoreLabel.setText("⚪ Score: " + score);
-        revalidate();
-        repaint();
+        scoreLabel.setText("Score: " + score);
+    }
+
+    public void setPlayerName(String name) {
+        playerLabel.setText("♔ " + name);
     }
 }

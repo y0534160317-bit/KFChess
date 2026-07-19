@@ -245,10 +245,7 @@ public class ImgRenderer {
 
         state = visual.getState();
 
-        Graphics2D g = canvas.get().createGraphics();
-        g.setColor(Color.RED);
-        g.drawString(state.name(), x + 5, y + 15);
-        g.dispose();
+
         if (motion != null) {
 
 

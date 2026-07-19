@@ -14,6 +14,17 @@ public class BoardPanel extends JPanel {
     private int boardY;
     private int boardSize;
 
+    public BoardPanel() {
+
+        setBackground(new Color(248,242,233));
+
+        setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(
+                        new Color(160,120,88),3),
+                BorderFactory.createEmptyBorder(20,20,20,20)
+        ));
+    }
+
     public void setImage(BufferedImage image) {
         this.image = image;
         repaint();

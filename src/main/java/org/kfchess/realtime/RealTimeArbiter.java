@@ -122,6 +122,8 @@ public class RealTimeArbiter {
             Piece currentAtSource = board.getPiece(src);
 
             Piece target = board.getPiece(dest);
+
+            System.out.println("Captured = " + target);
             if (target != null && target.getColor() != movingPiece.getColor()) {
                 if (target.getType() == Piece.Type.KING) {
                     kingCaptured = true;
@@ -134,7 +136,8 @@ public class RealTimeArbiter {
                         new CompletedMove(
                                 movingPiece,
                                 src,
-                                dest
+                                dest,
+                                target
                         )
                 );
             }

@@ -7,12 +7,15 @@ import org.kfchess.core.GameEngine;
 import org.kfchess.model.BoardParser;
 import org.kfchess.model.Board;
 import org.kfchess.model.GameState;
+import org.kfchess.model.ScoreManager;
 import org.kfchess.realtime.CollisionResolver;
 import org.kfchess.realtime.RealTimeArbiter;
 import org.kfchess.rules.RuleEngine;
 import org.kfchess.input.InteractionHandler;
 import org.kfchess.view.GameWindow;    // הוספת ה-View
 import org.kfchess.view.ImgRenderer;   // הוספת ה-View
+import org.kfchess.view.panels.FooterPanel;
+import org.kfchess.view.panels.HeaderPanel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,18 +60,21 @@ public class Main {
             RealTimeArbiter arbiter = new RealTimeArbiter(board, resolver);
             RuleEngine ruleEngine = new RuleEngine();
             GameState gameState = new GameState();
+            ScoreManager scoreManager = new ScoreManager();
 
             // 2. אתחול ה-Engine
-            GameEngine gameEngine = new GameEngine(board, arbiter, ruleEngine, gameState);
+            GameEngine gameEngine = new GameEngine(board, arbiter, ruleEngine, gameState,scoreManager);
 
             // 3. אתחול רכיבי הקלט והפקודות
             CommandParser parser = new CommandParser();
             InteractionHandler interactionHandler = new InteractionHandler(gameEngine);
             CommandExecutor executor = new CommandExecutor(gameEngine, arbiter, interactionHandler);
+            HeaderPanel headerPanel = new HeaderPanel();
+            FooterPanel footerPanel = new FooterPanel();
 
             // 4. אתחול רכיבי ה-View (הוספה חדשה)
             ImgRenderer renderer = new ImgRenderer();
-            GameWindow window = new GameWindow(gameEngine, interactionHandler, renderer);
+            GameWindow window = new GameWindow(gameEngine, interactionHandler, renderer,headerPanel,footerPanel);
 
             // הפעלת החלון הגרפי
             window.start();

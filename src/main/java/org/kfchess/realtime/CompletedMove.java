@@ -8,14 +8,17 @@ public class CompletedMove {
     private final Piece piece;
     private final Position source;
     private final Position destination;
+    private final Piece capturedPiece;
 
     public CompletedMove(Piece piece,
                          Position source,
-                         Position destination) {
+                         Position destination,
+                         Piece capturedPiece) {
 
         this.piece = piece;
         this.source = source;
         this.destination = destination;
+        this.capturedPiece = capturedPiece;
     }
 
     public Piece getPiece() {
@@ -28,5 +31,9 @@ public class CompletedMove {
 
     public Position getDestination() {
         return destination;
+    }
+
+    public Piece getCapturedPiece() {
+        return capturedPiece;
     }
 }

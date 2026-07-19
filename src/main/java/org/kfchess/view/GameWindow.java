@@ -21,11 +21,15 @@ public final class GameWindow {
     private JFrame frame;
     private Timer timer;
     private BoardPanel boardPanel;
+    private HeaderPanel headerPanel;
+    private FooterPanel footerPanel;
 
-    public GameWindow(GameEngine engine, InteractionHandler controller, ImgRenderer renderer) {
+    public GameWindow(GameEngine engine, InteractionHandler controller, ImgRenderer renderer, HeaderPanel headerPanel, FooterPanel footerPanel) {
         this.engine = engine;
         this.controller = controller;
         this.renderer = renderer;
+        this.headerPanel = headerPanel;
+        this.footerPanel = footerPanel;
     }
 
     public void start() {
@@ -40,8 +44,8 @@ public final class GameWindow {
         frame.setLayout(new BorderLayout());
 
         // הפאנלים
-        HeaderPanel headerPanel = new HeaderPanel();
-        FooterPanel footerPanel = new FooterPanel();
+        headerPanel = new HeaderPanel();
+        footerPanel = new FooterPanel();
 
         MovesPanel leftMovesPanel =
                 new MovesPanel(Piece.Color.BLACK);
@@ -82,7 +86,17 @@ public final class GameWindow {
 
             // 2. עכשיו ניקח תמונת מצב מעודכנת
             Position selected = controller.getSelectedPosition();
+
             GameSnapshot snapshot = engine.snapshot(selected);
+
+            System.out.println(
+                    "Snapshot: "
+                            + snapshot.getWhiteScore()
+                            + " "
+                            + snapshot.getBlackScore()
+            );
+            headerPanel.setScore(snapshot.getBlackScore());
+            footerPanel.setScore(snapshot.getWhiteScore());
 
             // 3. נרנדר ונציג
             Img currentFrame = renderer.render(snapshot);

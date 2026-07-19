@@ -21,12 +21,14 @@ public class GameEngine implements GameEngineActions {
     private final RuleEngine ruleEngine;
     private final GameState gameState;
     private final List<MoveObserver> moveObservers = new ArrayList<>();
+    private final ScoreManager scoreManager;
 
-    public GameEngine(BoardView board, RealTimeArbiter arbiter, RuleEngine ruleEngine, GameState gameState) {
+    public GameEngine(BoardView board, RealTimeArbiter arbiter, RuleEngine ruleEngine, GameState gameState,ScoreManager scoreManager) {
         this.board = board;
         this.arbiter = arbiter;
         this.ruleEngine = ruleEngine;
         this.gameState = gameState;
+        this.scoreManager = scoreManager;
     }
 
     public void addMoveObserver(MoveObserver observer) {
@@ -109,15 +111,15 @@ public class GameEngine implements GameEngineActions {
 
     @Override
     public void requestMove(Position source, Position destination) {
-        System.out.println("DEBUG: requestMove received. Source: " + (source == null ? "NULL" : source.getRow() + "," + source.getCol()));
-        System.out.println("DEBUG: Board reference: " + this.board);
+       // System.out.println("DEBUG: requestMove received. Source: " + (source == null ? "NULL" : source.getRow() + "," + source.getCol()));
+      //  System.out.println("DEBUG: Board reference: " + this.board);
         if (this.board == null) {
             System.err.println("ERROR: Board is null in GameEngine!");
             return;
         }
         Piece piece = board.getPiece(source);
         if (piece == null) {
-            System.out.println("DEBUG: No piece found at source: " + source.getRow() + "," + source.getCol());
+       //     System.out.println("DEBUG: No piece found at source: " + source.getRow() + "," + source.getCol());
             return;
         }
 
@@ -135,7 +137,6 @@ public class GameEngine implements GameEngineActions {
 
         if (!ruleEngine.isValidMove(logicalBoard, source, destination)) {
         // וידוא חוקיות המהלך במנוע החוקים הטהור לפני תחילת התנועה בזמן אמת
-            System.out.println("DEBUG: Move rejected by engine!");
             return; // מהלך לא חוקי (למשל: כלי חבר, או מהלך לא תואם לסוג הכלי)
         }
         if (logicalBoard.isReserved(destination, piece.getColor())) {
@@ -166,7 +167,16 @@ public class GameEngine implements GameEngineActions {
         List<CompletedMove> completedMoves =
                 arbiter.advanceTime(milliseconds);
 
+
+
         for (CompletedMove move : completedMoves) {
+            if (move.getCapturedPiece() != null) {
+                scoreManager.addCapturedPiece(move.getCapturedPiece());
+            }
+            System.out.println(
+                    "White=" + scoreManager.getWhiteScore()
+                            + " Black=" + scoreManager.getBlackScore()
+            );
             notifyMoveObservers(move);
         }
     }
@@ -199,8 +209,10 @@ public class GameEngine implements GameEngineActions {
                 this.arbiter.getActiveMotions(),
                 selectedPosition,
                 this.arbiter.getCurrentTimeMillis(),
-                visualStates
-                );
+                visualStates,
+                scoreManager.getWhiteScore(),
+                scoreManager.getBlackScore()
+        );
     }
 
 

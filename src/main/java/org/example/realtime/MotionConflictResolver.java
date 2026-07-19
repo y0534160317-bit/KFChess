@@ -35,12 +35,11 @@ public class MotionConflictResolver {
 
                 if (first.getPiece().getColor() == second.getPiece().getColor()) continue;
 
-                boolean sameDestination = first.getDestination().equals(second.getDestination());
 
                 boolean headOnCollision = first.getSource().equals(second.getDestination())
                         && first.getDestination().equals(second.getSource());
 
-                if (sameDestination || headOnCollision) {
+                if (  headOnCollision) {
                     ActiveMotion winner = collisionResolver.determineWinner(first, second);
                     ActiveMotion loser = (winner == first) ? second : first;
 

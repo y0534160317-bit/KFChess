@@ -3,6 +3,7 @@ package org.kfchess.core;
 import org.kfchess.input.GameEngineActions;
 import org.kfchess.model.*;
 import org.kfchess.realtime.RealTimeArbiter;
+import org.kfchess.rules.MoveValidationResult;
 import org.kfchess.rules.RuleEngine; // מנוע החוקים הפשוטים שנבנה מייד
 import org.kfchess.view.GameSnapshot;
 import org.kfchess.view.PieceVisualState;
@@ -136,10 +137,19 @@ public class GameEngine implements GameEngineActions {
                         board,
                         arbiter.getActiveMotions());
 
-        if (!ruleEngine.isValidMove(logicalBoard, source, destination)) {
-        // וידוא חוקיות המהלך במנוע החוקים הטהור לפני תחילת התנועה בזמן אמת
-            return; // מהלך לא חוקי (למשל: כלי חבר, או מהלך לא תואם לסוג הכלי)
+
+
+        MoveValidationResult validationResult =
+                ruleEngine.validateMove(
+                        logicalBoard,
+                        source,
+                        destination);
+
+        if (!validationResult.isValid()) {
+            // בעתיד אפשר להשתמש ב-validationResult.getReason()
+            return;
         }
+
         if (logicalBoard.isReserved(destination, piece.getColor())) {
             return;
         }

@@ -91,12 +91,26 @@ public class RealTimeArbiter {
         List<CompletedMove> completedMoves = new ArrayList<>();
         this.currentTimeMillis += milliseconds;
 
-        conflictResolver.resolve(
-                activeMotions,
-                board,
-                currentTimeMillis);
+        List<JumpCapture> jumpCaptures =
+                conflictResolver.resolve(
+                        activeMotions,
+                        board,
+                        currentTimeMillis);
+
+        for (JumpCapture capture : jumpCaptures) {
+
+            completedMoves.add(
+                    new CompletedMove(
+                            capture.getJumper(),
+                            capture.getSource(),
+                            capture.getDestination(),
+                            capture.getCaptured()
+                    )
+            );
+        }
 
         List<ActiveMotion> completedMotions = new ArrayList<>();
+
         for (ActiveMotion motion : activeMotions) {
             if (!motion.isCancelled() && motion.isComplete(currentTimeMillis)) {
                 completedMotions.add(motion);

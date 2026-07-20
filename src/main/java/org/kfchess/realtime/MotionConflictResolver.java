@@ -2,6 +2,7 @@ package org.kfchess.realtime;
 
 import org.kfchess.model.Board;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MotionConflictResolver {
@@ -9,17 +10,21 @@ public class MotionConflictResolver {
     private final CollisionResolver collisionResolver =
             new CollisionResolver();
 
-    public void resolve(
+    public List<JumpCapture> resolve(
             List<ActiveMotion> activeMotions,
             Board board,
             long currentTimeMillis) {
+        List<JumpCapture> captures = new ArrayList<>();
 
         resolveAirCollisions(activeMotions, board);
         resolveAirCapturesByJumps(activeMotions, board);
         resolveJumpCapturesMovingPieces(
                 activeMotions,
                 board,
-                currentTimeMillis);
+                currentTimeMillis,
+                captures);
+        return captures;
+
     }
 
     private void resolveAirCollisions(
@@ -84,7 +89,8 @@ public class MotionConflictResolver {
     private void resolveJumpCapturesMovingPieces(
             List<ActiveMotion> activeMotions,
             Board board,
-            long currentTimeMillis) {
+            long currentTimeMillis,
+            List<JumpCapture> captures) {
 
         for (ActiveMotion jumper : activeMotions) {
 
@@ -124,6 +130,15 @@ public class MotionConflictResolver {
                 if (!mover.getDestination().equals(jumper.getDestination())) {
                     continue;
                 }
+
+                captures.add(
+                        new JumpCapture(
+                                jumper.getPiece(),
+                                mover.getPiece(),
+                                mover.getSource(),
+                                mover.getDestination()
+                        )
+                );
 
                 mover.cancel();
                 board.removePiece(mover.getSource());

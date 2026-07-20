@@ -1,6 +1,8 @@
 package org.kfchess.view;
 
 import org.kfchess.core.GameEngine;
+import org.kfchess.events.EventBus;
+import org.kfchess.events.MoveEvent;
 import org.kfchess.input.InteractionHandler;
 import org.kfchess.model.Piece;
 import org.kfchess.model.Position;
@@ -23,13 +25,20 @@ public final class GameWindow {
     private BoardPanel boardPanel;
     private HeaderPanel headerPanel;
     private FooterPanel footerPanel;
+    private final EventBus eventBus;
 
-    public GameWindow(GameEngine engine, InteractionHandler controller, ImgRenderer renderer, HeaderPanel headerPanel, FooterPanel footerPanel) {
+    public GameWindow(GameEngine engine,
+                      InteractionHandler controller,
+                      ImgRenderer renderer,
+                      HeaderPanel headerPanel,
+                      FooterPanel footerPanel,
+                      EventBus eventBus){
         this.engine = engine;
         this.controller = controller;
         this.renderer = renderer;
         this.headerPanel = headerPanel;
         this.footerPanel = footerPanel;
+        this.eventBus = eventBus;
     }
 
     public void start() {
@@ -91,8 +100,15 @@ public final class GameWindow {
         MovesPanel leftMovesPanel = new MovesPanel(Piece.Color.BLACK);
         MovesPanel rightMovesPanel = new MovesPanel(Piece.Color.WHITE);
 
-        engine.addMoveObserver(leftMovesPanel);
-        engine.addMoveObserver(rightMovesPanel);
+        eventBus.subscribe(
+                MoveEvent.class,
+                leftMovesPanel
+        );
+
+        eventBus.subscribe(
+                MoveEvent.class,
+                rightMovesPanel
+        );
 
         boardPanel = new BoardPanel();
 

@@ -1,7 +1,7 @@
 package org.kfchess.view.panels;
 
+import org.kfchess.events.EventListener;
 import org.kfchess.events.MoveEvent;
-import org.kfchess.events.MoveObserver;
 import org.kfchess.model.Piece;
 import org.kfchess.view.MoveNotationFormatter;
 
@@ -10,7 +10,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 
-public class MovesPanel extends JPanel implements MoveObserver {
+public class MovesPanel extends JPanel implements EventListener<MoveEvent> {
 
     private final Piece.Color panelColor;
     private final DefaultTableModel tableModel;
@@ -97,9 +97,8 @@ public class MovesPanel extends JPanel implements MoveObserver {
 
         setPreferredSize(new Dimension(220, 0));
     }
-
     @Override
-    public void onMoveCompleted(MoveEvent event) {
+    public void onEvent(MoveEvent event) {
 
         if (event.getPiece().getColor() != panelColor) {
             return;

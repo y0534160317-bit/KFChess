@@ -4,6 +4,7 @@ import org.kfchess.command.CommandExecutor;
 import org.kfchess.command.CommandParser;
 import org.kfchess.command.GameCommand;
 import org.kfchess.core.GameEngine;
+import org.kfchess.events.EventBus;
 import org.kfchess.model.BoardParser;
 import org.kfchess.model.Board;
 import org.kfchess.model.GameState;
@@ -61,10 +62,18 @@ public class Main {
             RuleEngine ruleEngine = new RuleEngine();
             GameState gameState = new GameState();
             ScoreManager scoreManager = new ScoreManager();
+            EventBus eventBus = new EventBus();
 
             // 2. אתחול ה-Engine
-            GameEngine gameEngine = new GameEngine(board, arbiter, ruleEngine, gameState,scoreManager);
-
+            GameEngine gameEngine =
+                    new GameEngine(
+                            board,
+                            arbiter,
+                            ruleEngine,
+                            gameState,
+                            scoreManager,
+                            eventBus
+                    );
             // 3. אתחול רכיבי הקלט והפקודות
             CommandParser parser = new CommandParser();
             InteractionHandler interactionHandler = new InteractionHandler(gameEngine);
@@ -74,8 +83,14 @@ public class Main {
 
             // 4. אתחול רכיבי ה-View (הוספה חדשה)
             ImgRenderer renderer = new ImgRenderer();
-            GameWindow window = new GameWindow(gameEngine, interactionHandler, renderer,headerPanel,footerPanel);
-
+            GameWindow window = new GameWindow(
+                    gameEngine,
+                    interactionHandler,
+                    renderer,
+                    headerPanel,
+                    footerPanel,
+                    eventBus
+            );
             // הפעלת החלון הגרפי
             window.start();
 

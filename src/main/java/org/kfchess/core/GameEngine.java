@@ -1,5 +1,6 @@
 package org.kfchess.core;
 
+import org.kfchess.events.EventBus;
 import org.kfchess.input.GameEngineActions;
 import org.kfchess.model.*;
 import org.kfchess.realtime.RealTimeArbiter;
@@ -8,10 +9,8 @@ import org.kfchess.rules.RuleEngine; // מנוע החוקים הפשוטים ש�
 import org.kfchess.view.GameSnapshot;
 import org.kfchess.view.PieceVisualState;
 import org.kfchess.events.MoveEvent;
-import org.kfchess.events.MoveObserver;
 import org.kfchess.realtime.CompletedMove;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,38 +20,43 @@ public class GameEngine implements GameEngineActions {
     private final RealTimeArbiter arbiter;
     private final RuleEngine ruleEngine;
     private final GameState gameState;
-    private final List<MoveObserver> moveObservers = new ArrayList<>();
+   // private final List<MoveObserver> moveObservers = new ArrayList<>();
     private final ScoreManager scoreManager;
+    private final EventBus eventBus;
 
-    public GameEngine(BoardView board, RealTimeArbiter arbiter, RuleEngine ruleEngine, GameState gameState,ScoreManager scoreManager) {
+    public GameEngine(BoardView board,
+                      RealTimeArbiter arbiter,
+                      RuleEngine ruleEngine,
+                      GameState gameState,
+                      ScoreManager scoreManager,
+                      EventBus eventBus) {
+
         this.board = board;
         this.arbiter = arbiter;
         this.ruleEngine = ruleEngine;
         this.gameState = gameState;
         this.scoreManager = scoreManager;
+        this.eventBus = eventBus;
     }
 
-    public void addMoveObserver(MoveObserver observer) {
-        moveObservers.add(observer);
-    }
+//    public void addMoveObserver(MoveObserver observer) {
+//        moveObservers.add(observer);
+//    }
+//
+//    public void removeMoveObserver(MoveObserver observer) {
+//        moveObservers.remove(observer);
+//    }
 
-    public void removeMoveObserver(MoveObserver observer) {
-        moveObservers.remove(observer);
-    }
+    private void publishMoveEvent(CompletedMove move) {
 
-    private void notifyMoveObservers(CompletedMove move) {
-
-        MoveEvent event =
+        eventBus.publish(
                 new MoveEvent(
                         move.getPiece(),
                         move.getSource(),
                         move.getDestination(),
                         arbiter.getCurrentTimeMillis()
-                );
-
-        for (MoveObserver observer : moveObservers) {
-            observer.onMoveCompleted(event);
-        }
+                )
+        );
     }
 
 
@@ -188,7 +192,8 @@ public class GameEngine implements GameEngineActions {
                     "White=" + scoreManager.getWhiteScore()
                             + " Black=" + scoreManager.getBlackScore()
             );
-            notifyMoveObservers(move);
+//            notifyMoveObservers(move);
+            publishMoveEvent(move);
         }
     }
 

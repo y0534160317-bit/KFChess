@@ -3,7 +3,7 @@ package org.kfchess.events;
 import org.kfchess.model.Piece;
 import org.kfchess.model.Position;
 
-public class MoveEvent {
+public class MoveEvent implements Event{
 
     private final Piece piece;
     private final Position source;

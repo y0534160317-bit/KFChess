@@ -1,14 +1,18 @@
 package org.kfchess.view.panels;
 
+import org.kfchess.events.EventBus;
+import org.kfchess.events.EventListener;
+import org.kfchess.events.ScoreChangedEvent;
+
 import javax.swing.*;
 import java.awt.*;
 
-public class FooterPanel extends JPanel {
+public class FooterPanel extends JPanel implements EventListener<ScoreChangedEvent> {
 
     private final JLabel playerLabel;
     private final JLabel scoreLabel;
 
-    public FooterPanel() {
+    public FooterPanel(EventBus eventBus) {
 
         setLayout(new BorderLayout());
 
@@ -31,6 +35,13 @@ public class FooterPanel extends JPanel {
         add(scoreLabel, BorderLayout.EAST);
 
         setPreferredSize(new Dimension(0, 65));
+        eventBus.subscribe(ScoreChangedEvent.class, this);
+    }
+
+    @Override
+    public void onEvent(ScoreChangedEvent event) {
+        // מעדכן את ניקוד הלבן
+        setScore(event.getWhiteScore());
     }
 
     public void setScore(int score) {

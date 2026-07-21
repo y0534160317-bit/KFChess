@@ -26,17 +26,20 @@ public class HeaderPanel extends JPanel {
 
 package org.kfchess.view.panels;
 
+import org.kfchess.events.EventBus;
+import org.kfchess.events.EventListener;
+import org.kfchess.events.ScoreChangedEvent;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
-public class HeaderPanel extends JPanel {
+public class HeaderPanel extends JPanel implements EventListener<ScoreChangedEvent> {
 
     private final JLabel playerLabel;
     private final JLabel scoreLabel;
 
-    public HeaderPanel() {
-
+    public HeaderPanel(EventBus eventBus) {
         setLayout(new BorderLayout());
 
         // צבע רקע שמתאים ללוח עץ
@@ -60,6 +63,14 @@ public class HeaderPanel extends JPanel {
         add(scoreLabel, BorderLayout.EAST);
 
         setPreferredSize(new Dimension(0, 65));
+
+        eventBus.subscribe(ScoreChangedEvent.class, this);
+    }
+
+    @Override
+    public void onEvent(ScoreChangedEvent event) {
+        // ניקוד השחור מעודכן לפי הניקוד שהלבן צבר (או להיפך, תกฎ המערכת שלך - כאן מעודכן לפי ה-blackScore)
+        setScore(event.getBlackScore());
     }
 
     public void setScore(int score) {

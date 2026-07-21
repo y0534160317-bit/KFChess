@@ -13,7 +13,7 @@ public class InteractionHandler implements MouseListener {
 
     private static final long CLICK_THRESHOLD = 200;
 
-    private final GameEngineActions actions;
+    private final GameClient actions;
     private Position selectedPosition;
     private long lastClickTime;
 
@@ -21,7 +21,7 @@ public class InteractionHandler implements MouseListener {
     // כך אין תלות ב-BoardPanel ואין צורך לעדכן את ה-Controller בכל ציור.
     private BoardGeometry boardGeometry;
 
-    public InteractionHandler(GameEngineActions actions) {
+    public InteractionHandler(GameClient actions) {
         this.actions = actions;
     }
 

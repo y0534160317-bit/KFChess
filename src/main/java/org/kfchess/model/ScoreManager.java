@@ -1,19 +1,42 @@
 package org.kfchess.model;
 
-public class ScoreManager {
+import org.kfchess.events.EventBus;
+import org.kfchess.events.EventListener;
+import org.kfchess.events.MoveEvent;
+import org.kfchess.events.ScoreChangedEvent;
+
+public class ScoreManager implements EventListener<MoveEvent> {
 
     private int whiteScore;
     private int blackScore;
+    private final EventBus eventBus;
 
-    public void addCapturedPiece(Piece captured) {
+    @Override
+    public void onEvent(MoveEvent event) {
+        // המידע על הכלי שנתפס מגיע כחלק מהמהלך שהושלם (אם נרצה נוכל לוודא או להעביר את ה-CompletedMove / CapturedPiece ישירות)
+        // לחלופין, אם ה-MoveEvent מכיל את המידע או שנזין את הטיפול דרך CompletedMove:
+    }
 
-        int value = getValue(captured);
+    public ScoreManager(EventBus eventBus) {
+        this.eventBus = eventBus;
+        // הרשמה אוטומטית ל-EventBus עבור MoveEvent
+        this.eventBus.subscribe(MoveEvent.class, this);
+    }
 
-        if (captured.getColor() == Piece.Color.WHITE) {
+    public void handleCapturedPiece(Piece capturedPiece) {
+
+        if (capturedPiece == null) {
+            return;
+        }
+
+        int value = getValue(capturedPiece);
+
+        if (capturedPiece.getColor() == Piece.Color.WHITE) {
             blackScore += value;
         } else {
             whiteScore += value;
         }
+        eventBus.publish(new ScoreChangedEvent(whiteScore, blackScore));
     }
 
     public int getWhiteScore() {

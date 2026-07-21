@@ -13,6 +13,7 @@ public class CoordinateMapper {
 
         int boardX = geometry.getX();
         int boardY = geometry.getY();
+
         int boardSize = geometry.getSize();
         // האם הלחיצה בכלל בתוך הלוח?
         if (x < boardX || x >= boardX + boardSize ||

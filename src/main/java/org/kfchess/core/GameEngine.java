@@ -1,7 +1,7 @@
 package org.kfchess.core;
 
 import org.kfchess.events.EventBus;
-import org.kfchess.input.GameEngineActions;
+import org.kfchess.input.GameClient;
 import org.kfchess.model.*;
 import org.kfchess.realtime.RealTimeArbiter;
 import org.kfchess.rules.MoveValidationResult;
@@ -15,7 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class GameEngine implements GameEngineActions {
+public class GameEngine implements GameClient {
     private final BoardView board;
     private final RealTimeArbiter arbiter;
     private final RuleEngine ruleEngine;
@@ -186,8 +186,7 @@ public class GameEngine implements GameEngineActions {
 
         for (CompletedMove move : completedMoves) {
             if (move.getCapturedPiece() != null) {
-                scoreManager.addCapturedPiece(move.getCapturedPiece());
-            }
+                scoreManager.handleCapturedPiece(move.getCapturedPiece());            }
             System.out.println(
                     "White=" + scoreManager.getWhiteScore()
                             + " Black=" + scoreManager.getBlackScore()

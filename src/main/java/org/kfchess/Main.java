@@ -61,8 +61,8 @@ public class Main {
             RealTimeArbiter arbiter = new RealTimeArbiter(board, resolver);
             RuleEngine ruleEngine = new RuleEngine();
             GameState gameState = new GameState();
-            ScoreManager scoreManager = new ScoreManager();
-            EventBus eventBus = new EventBus();
+            EventBus eventBus = new EventBus(); // או שימוש במופע ה-EventBus הקיים במחחלקה הראשית
+            ScoreManager scoreManager = new ScoreManager(eventBus);
 
             // 2. אתחול ה-Engine
             GameEngine gameEngine =
@@ -78,8 +78,8 @@ public class Main {
             CommandParser parser = new CommandParser();
             InteractionHandler interactionHandler = new InteractionHandler(gameEngine);
             CommandExecutor executor = new CommandExecutor(gameEngine, arbiter, interactionHandler);
-            HeaderPanel headerPanel = new HeaderPanel();
-            FooterPanel footerPanel = new FooterPanel();
+            HeaderPanel headerPanel = new HeaderPanel(eventBus);
+            FooterPanel footerPanel = new FooterPanel(eventBus);
 
             // 4. אתחול רכיבי ה-View (הוספה חדשה)
             ImgRenderer renderer = new ImgRenderer();

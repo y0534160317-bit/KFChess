@@ -4,7 +4,7 @@ import org.kfchess.model.Piece;
 import org.kfchess.model.Position;
 import org.kfchess.view.GameSnapshot;
 
-public interface GameEngineActions {
+public interface GameClient {
 
     boolean isGameOver();
 

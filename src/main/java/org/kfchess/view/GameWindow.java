@@ -94,8 +94,8 @@ public final class GameWindow {
 
         frame.getContentPane().setBackground(new Color(248,242,233));
 
-        headerPanel = new HeaderPanel();
-        footerPanel = new FooterPanel();
+        headerPanel = new HeaderPanel(eventBus);
+        footerPanel = new FooterPanel(eventBus);
 
         MovesPanel leftMovesPanel = new MovesPanel(Piece.Color.BLACK);
         MovesPanel rightMovesPanel = new MovesPanel(Piece.Color.WHITE);
@@ -150,8 +150,7 @@ public final class GameWindow {
                             + " "
                             + snapshot.getBlackScore()
             );
-            headerPanel.setScore(snapshot.getBlackScore());
-            footerPanel.setScore(snapshot.getWhiteScore());
+
 
             // 3. נרנדר ונציג
             Img currentFrame = renderer.render(snapshot);

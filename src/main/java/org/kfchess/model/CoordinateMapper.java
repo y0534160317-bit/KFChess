@@ -1,5 +1,8 @@
 package org.kfchess.model;
 
+import org.kfchess.shared.model.BoardGeometry;
+import org.kfchess.shared.model.Position;
+
 public class CoordinateMapper {
 
     public static final int CELL_SIZE = 100;

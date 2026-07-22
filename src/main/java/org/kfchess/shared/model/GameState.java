@@ -1,0 +1,16 @@
+package org.kfchess.shared.model;
+
+public class GameState {
+    private long gameTimeMillis;
+    private boolean isGameOver;
+
+    public GameState() {
+        this.gameTimeMillis = 0;
+        this.isGameOver = false;
+    }
+
+    public long getGameTimeMillis() { return gameTimeMillis; }
+
+    public boolean isGameOver() { return isGameOver; }
+    public void setGameOver(boolean gameOver) { this.isGameOver = gameOver; }
+}

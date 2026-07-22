@@ -1,10 +1,11 @@
 package org.kfchess.command;
 
-import org.kfchess.core.GameEngine;
+import org.kfchess.server.core.GameEngine;
 import org.kfchess.input.InteractionHandler;
 import org.kfchess.io.BoardPrinter;
-import org.kfchess.model.Position;
-import org.kfchess.realtime.RealTimeArbiter;
+import org.kfchess.shared.model.GameCommand;
+import org.kfchess.shared.model.Position;
+import org.kfchess.server.realtime.RealTimeArbiter;
 
 public class CommandExecutor {
     private final GameEngine gameEngine;

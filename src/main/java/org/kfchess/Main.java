@@ -1,22 +1,22 @@
 package org.kfchess;
 
 import org.kfchess.command.CommandExecutor;
-import org.kfchess.command.CommandParser;
-import org.kfchess.command.GameCommand;
-import org.kfchess.core.GameEngine;
-import org.kfchess.events.EventBus;
+import org.kfchess.shared.CommandParser;
+import org.kfchess.shared.model.GameCommand;
+import org.kfchess.server.core.GameEngine;
+import org.kfchess.shared.events.EventBus;
 import org.kfchess.model.BoardParser;
-import org.kfchess.model.Board;
-import org.kfchess.model.GameState;
-import org.kfchess.model.ScoreManager;
-import org.kfchess.realtime.CollisionResolver;
-import org.kfchess.realtime.RealTimeArbiter;
-import org.kfchess.rules.RuleEngine;
+import org.kfchess.server.model.Board;
+import org.kfchess.shared.model.GameState;
+import org.kfchess.server.model.ScoreManager;
+import org.kfchess.server.realtime.CollisionResolver;
+import org.kfchess.server.realtime.RealTimeArbiter;
+import org.kfchess.server.rules.RuleEngine;
 import org.kfchess.input.InteractionHandler;
-import org.kfchess.view.GameWindow;    // הוספת ה-View
-import org.kfchess.view.ImgRenderer;   // הוספת ה-View
-import org.kfchess.view.panels.FooterPanel;
-import org.kfchess.view.panels.HeaderPanel;
+import org.kfchess.client.view.GameWindow;    // הוספת ה-View
+import org.kfchess.client.view.ImgRenderer;   // הוספת ה-View
+import org.kfchess.client.view.panels.FooterPanel;
+import org.kfchess.client.view.panels.HeaderPanel;
 
 import java.util.ArrayList;
 import java.util.List;

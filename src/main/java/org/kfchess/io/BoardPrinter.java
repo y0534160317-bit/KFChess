@@ -1,9 +1,8 @@
 package org.kfchess.io;
 
-import org.kfchess.model.Board;
-import org.kfchess.model.BoardView;
-import org.kfchess.model.Piece;
-import org.kfchess.model.Position;
+import org.kfchess.shared.model.BoardView;
+import org.kfchess.shared.model.Piece;
+import org.kfchess.shared.model.Position;
 
 public class BoardPrinter {
 

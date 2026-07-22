@@ -1,0 +1,64 @@
+package org.kfchess.client.view;
+
+import org.kfchess.shared.model.BoardView;
+import org.kfchess.shared.model.Piece;
+import org.kfchess.shared.model.Position;
+import org.kfchess.server.realtime.ActiveMotion;
+
+import java.util.List;
+import java.util.Map;
+
+public class GameSnapshot {
+    private final BoardView board;    private final List<ActiveMotion> activeMotions;
+    private final Position selectedPosition;
+    private final long currentTimeMillis;
+    private final Map<Piece, PieceVisualState> visualStates;
+    private final int whiteScore;
+    private final int blackScore;
+    private final boolean gameOver;
+    private final Piece.Color winner;
+
+    public GameSnapshot(
+            BoardView board,
+            List<ActiveMotion> activeMotions,
+            Position selectedPosition,
+            long currentTimeMillis,
+            Map<Piece, PieceVisualState> visualStates,
+            int whiteScore,
+            int blackScore,
+            boolean gameOver,
+            Piece.Color winner) {
+
+        this.board = board;
+        this.activeMotions = activeMotions;
+        this.selectedPosition = selectedPosition;
+        this.currentTimeMillis = currentTimeMillis;
+        this.visualStates = visualStates;
+        this.whiteScore = whiteScore;
+        this.blackScore = blackScore;
+        this.gameOver = gameOver;
+        this.winner = winner;
+    }
+
+    // Getters למען ה-Renderer
+    public BoardView getBoard() { return board; }
+    public List<ActiveMotion> getActiveMotions() { return activeMotions; }
+    public Position getSelectedPosition() { return selectedPosition; }
+    public long getCurrentTimeMillis() { return currentTimeMillis; }
+    public Map<Piece, PieceVisualState> getVisualStates() { return visualStates; }
+    public int getWhiteScore() {
+        return whiteScore;
+    }
+
+    public int getBlackScore() {
+        return blackScore;
+    }
+    public boolean isGameOver() {
+        return gameOver;
+    }
+
+    public Piece.Color getWinner() {
+        return winner;
+    }
+
+}

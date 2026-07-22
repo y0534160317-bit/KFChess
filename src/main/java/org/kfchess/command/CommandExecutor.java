@@ -1,7 +1,7 @@
 package org.kfchess.command;
 
 import org.kfchess.server.core.GameEngine;
-import org.kfchess.input.InteractionHandler;
+import org.kfchess.client.input.InteractionHandler;
 import org.kfchess.io.BoardPrinter;
 import org.kfchess.shared.model.GameCommand;
 import org.kfchess.shared.model.Position;

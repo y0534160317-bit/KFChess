@@ -3,7 +3,6 @@ package org.kfchess.server.core;
 import org.kfchess.server.model.LogicalBoardView;
 import org.kfchess.server.model.ScoreManager;
 import org.kfchess.shared.events.EventBus;
-import org.kfchess.input.GameClient;
 import org.kfchess.server.realtime.RealTimeArbiter;
 import org.kfchess.server.rules.MoveValidationResult;
 import org.kfchess.server.rules.RuleEngine; // מנוע החוקים הפשוטים שנבנה מייד
@@ -15,13 +14,12 @@ import org.kfchess.shared.model.BoardView;
 import org.kfchess.shared.model.GameState;
 import org.kfchess.shared.model.Piece;
 import org.kfchess.shared.model.Position;
-import org.kfchess.shared.server.GameServer;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class GameEngine implements GameServer {
+public class GameEngine  {
     private final BoardView board;
     private final RealTimeArbiter arbiter;
     private final RuleEngine ruleEngine;
@@ -70,7 +68,7 @@ public class GameEngine implements GameServer {
         return this.board;
     }
 
-    @Override
+    //@Override
     public boolean isGameOver() {
         if (arbiter.isKingCaptured()) {
             gameState.setGameOver(true);
@@ -105,7 +103,7 @@ public class GameEngine implements GameServer {
         return isPieceReady(piece) && !isPieceMoving(piece);
     }
 
-    @Override
+    //@Override
     public boolean arePiecesSameColor(Position pos1, Position pos2) {
         Piece piece1 = board.getPiece(pos1);
         Piece piece2 = board.getPiece(pos2);
@@ -119,7 +117,7 @@ public class GameEngine implements GameServer {
         return piece1.getColor() == piece2.getColor();
     }
 
-    @Override
+    //@Override
     public void requestMove(Position source, Position destination) {
        // System.out.println("DEBUG: requestMove received. Source: " + (source == null ? "NULL" : source.getRow() + "," + source.getCol()));
       //  System.out.println("DEBUG: Board reference: " + this.board);
@@ -166,7 +164,7 @@ public class GameEngine implements GameServer {
         arbiter.startMove(piece, source, destination);
     }
 
-    @Override
+    //@Override
     public void requestJump(Position position) {
         if (gameState.isGameOver()) {
             return;
@@ -180,7 +178,7 @@ public class GameEngine implements GameServer {
     }
 
 
-    @Override
+    //@Override
     public void advanceTime(long milliseconds) {
 
         List<CompletedMove> completedMoves =
@@ -200,7 +198,7 @@ public class GameEngine implements GameServer {
         }
     }
 
-    @Override
+    //@Override
     public GameSnapshot snapshot(Position selectedPosition) {
         /*  System.out.println("DEBUG: Snapshot taking board with piece at 2,0: " + (board.getPiece(new Position(2,0)) != null));*/
         Map<Piece, PieceVisualState> visualStates = new HashMap<>();

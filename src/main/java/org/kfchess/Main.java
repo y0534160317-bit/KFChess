@@ -1,22 +1,32 @@
 package org.kfchess;
 
+import org.kfchess.client.network.LocalTransport;
+import org.kfchess.client.network.Transport;
+import org.kfchess.client.network.WebSocketTransport;
 import org.kfchess.command.CommandExecutor;
+import org.kfchess.server.network.CommandDispatcher;
+import org.kfchess.server.network.GameCommandHandler;
+import org.kfchess.server.network.processor.MoveProcessor;
+import org.kfchess.server.network.websocket.GameWebSocketServer;
 import org.kfchess.shared.CommandParser;
 import org.kfchess.shared.model.GameCommand;
 import org.kfchess.server.core.GameEngine;
 import org.kfchess.shared.events.EventBus;
-import org.kfchess.model.BoardParser;
+import org.kfchess.server.model.BoardParser;
 import org.kfchess.server.model.Board;
 import org.kfchess.shared.model.GameState;
 import org.kfchess.server.model.ScoreManager;
 import org.kfchess.server.realtime.CollisionResolver;
 import org.kfchess.server.realtime.RealTimeArbiter;
 import org.kfchess.server.rules.RuleEngine;
-import org.kfchess.input.InteractionHandler;
+import org.kfchess.client.input.InteractionHandler;
 import org.kfchess.client.view.GameWindow;    // הוספת ה-View
 import org.kfchess.client.view.ImgRenderer;   // הוספת ה-View
 import org.kfchess.client.view.panels.FooterPanel;
 import org.kfchess.client.view.panels.HeaderPanel;
+import org.kfchess.client.input.GameClient;
+import org.kfchess.client.network.LocalGameClient;
+import org.kfchess.shared.network.ClientMessageType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -74,9 +84,39 @@ public class Main {
                             scoreManager,
                             eventBus
                     );
+
+            CommandDispatcher dispatcher =
+                    new CommandDispatcher();
+
+            dispatcher.register(
+                    ClientMessageType.MOVE,
+                    new MoveProcessor(gameEngine)
+            );
+
+            GameCommandHandler handler =
+                    new GameCommandHandler(dispatcher);
+
+// בעתיד:
+// Transport transport = new WebSocketTransport();
+            boolean localMode = true;
+
+            Transport transport;
+
+            if (localMode) {
+                transport = new LocalTransport(handler);
+            } else {
+                transport = new WebSocketTransport();
+            }
+
+            GameClient gameClient =
+                    new LocalGameClient(
+                            gameEngine,
+                            transport
+                    );
+        //    GameClient gameClient = new LocalGameClient(gameEngine);
             // 3. אתחול רכיבי הקלט והפקודות
             CommandParser parser = new CommandParser();
-            InteractionHandler interactionHandler = new InteractionHandler(gameEngine);
+            InteractionHandler interactionHandler = new InteractionHandler(gameClient);
             CommandExecutor executor = new CommandExecutor(gameEngine, arbiter, interactionHandler);
             HeaderPanel headerPanel = new HeaderPanel(eventBus);
             FooterPanel footerPanel = new FooterPanel(eventBus);
@@ -84,7 +124,7 @@ public class Main {
             // 4. אתחול רכיבי ה-View (הוספה חדשה)
             ImgRenderer renderer = new ImgRenderer();
             GameWindow window = new GameWindow(
-                    gameEngine,
+                    gameClient,
                     interactionHandler,
                     renderer,
                     headerPanel,
@@ -93,6 +133,11 @@ public class Main {
             );
             // הפעלת החלון הגרפי
             window.start();
+
+            GameWebSocketServer server =
+                    new GameWebSocketServer(8080);
+
+            server.start();
 
             // 5. הרצת פקודות (טקסטואליות)
             for (String commandLine : commandLines) {

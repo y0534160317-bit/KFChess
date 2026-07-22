@@ -1,6 +1,5 @@
 package org.kfchess.client.view;
 
-//import org.example.GameSnapshot;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.kfchess.server.realtime.ActiveMotion;
 import org.kfchess.shared.model.BoardView;

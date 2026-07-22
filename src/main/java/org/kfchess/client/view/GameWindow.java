@@ -1,9 +1,9 @@
 package org.kfchess.client.view;
 
-import org.kfchess.server.core.GameEngine;
+import org.kfchess.client.input.GameClient;
 import org.kfchess.shared.events.EventBus;
 import org.kfchess.shared.events.MoveEvent;
-import org.kfchess.input.InteractionHandler;
+import org.kfchess.client.input.InteractionHandler;
 import org.kfchess.shared.model.Piece;
 import org.kfchess.shared.model.Position;
 import org.kfchess.client.view.panels.FooterPanel;
@@ -17,7 +17,7 @@ import java.awt.*;
 
 public final class GameWindow {
     private static final int FRAME_DELAY_MS = 16;
-    private final GameEngine engine;
+    private final GameClient gameClient;
     private final InteractionHandler controller;
     private final ImgRenderer renderer;
     private JFrame frame;
@@ -27,13 +27,13 @@ public final class GameWindow {
     private FooterPanel footerPanel;
     private final EventBus eventBus;
 
-    public GameWindow(GameEngine engine,
+    public GameWindow(GameClient gameClient,
                       InteractionHandler controller,
                       ImgRenderer renderer,
                       HeaderPanel headerPanel,
                       FooterPanel footerPanel,
                       EventBus eventBus){
-        this.engine = engine;
+        this.gameClient = gameClient;
         this.controller = controller;
         this.renderer = renderer;
         this.headerPanel = headerPanel;
@@ -47,45 +47,7 @@ public final class GameWindow {
             startGameLoop();
         });
     }
-    /*private void createWindow() {
-        frame = new JFrame("KFChess");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setLayout(new BorderLayout());
 
-        // הפאנלים
-        headerPanel = new HeaderPanel();
-        footerPanel = new FooterPanel();
-
-        MovesPanel leftMovesPanel =
-                new MovesPanel(Piece.Color.BLACK);
-
-        MovesPanel rightMovesPanel =
-                new MovesPanel(Piece.Color.WHITE);
-
-        engine.addMoveObserver(leftMovesPanel);
-        engine.addMoveObserver(rightMovesPanel);
-
-        boardPanel = new BoardPanel();
-
-        // הלוח עדיין קולט את העכבר
-        boardPanel.addMouseListener(controller);
-
-        // האזור המרכזי
-        JPanel centerPanel = new JPanel(new BorderLayout());
-
-        centerPanel.add(leftMovesPanel, BorderLayout.WEST);
-        centerPanel.add(boardPanel, BorderLayout.CENTER);
-        centerPanel.add(rightMovesPanel, BorderLayout.EAST);
-
-        // הרכבת החלון
-        frame.add(headerPanel, BorderLayout.NORTH);
-        frame.add(centerPanel, BorderLayout.CENTER);
-        frame.add(footerPanel, BorderLayout.SOUTH);
-
-        frame.setSize(1200, 800);
-        frame.setLocationRelativeTo(null);
-        frame.setVisible(true);
-    }*/
     private void createWindow() {
 
         frame = new JFrame("KFChess");
@@ -137,12 +99,12 @@ public final class GameWindow {
         timer = new Timer(FRAME_DELAY_MS, e -> {
             // 1. קודם כל - נקדם את הזמן של המשחק ב-16 מילי-שניות!
             // (וודא שיש לך מתודה כזו ב-GameEngine שקוראת ל-arbiter.advanceTime)
-            engine.advanceTime(FRAME_DELAY_MS);
+            gameClient.advanceTime(FRAME_DELAY_MS);
 
             // 2. עכשיו ניקח תמונת מצב מעודכנת
             Position selected = controller.getSelectedPosition();
 
-            GameSnapshot snapshot = engine.snapshot(selected);
+            GameSnapshot snapshot = gameClient.snapshot(selected);
 
             System.out.println(
                     "Snapshot: "

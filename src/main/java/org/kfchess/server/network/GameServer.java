@@ -1,4 +1,4 @@
-package org.kfchess.shared.server;
+package org.kfchess.server.network;
 
 import org.kfchess.client.view.GameSnapshot;
 import org.kfchess.shared.model.Position;

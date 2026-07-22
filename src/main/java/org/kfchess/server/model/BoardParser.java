@@ -1,6 +1,5 @@
-package org.kfchess.model;
+package org.kfchess.server.model;
 
-import org.kfchess.server.model.Board;
 import org.kfchess.shared.model.Piece;
 
 import java.util.List;
